@@ -884,6 +884,186 @@ const GigerTextureEngine = (function() {
 })();
 
 
+/* ══════════════════════════════════════════════════════════
+   GLYPH FIELD — Lenguaje alien bio-mecánico
+   · Canvas fijo de fondo — z-index 0, no interfiere con contenido
+   · Pool de 80 glifos reutilizados (sin GC durante el loop)
+   · Solo globalAlpha + translate/rotate — sin filter ni shadow
+   · MainLoop centralizado — pausa automática en tab oculta
+   · Pulso suave: aparecen, mantienen y desaparecen gradualmente
+   · Densidad muy baja (alpha máx 0.13) — decorativo, no invasivo
+   ══════════════════════════════════════════════════════════ */
+(function initGlyphField() {
+  const canvas = document.getElementById('glyph-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+  let W = 0, H = 0;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  /* Paleta: dorado tenue + plateado tenue — sin blanco puro */
+  const PAL = [
+    /* dorados */
+    [200, 168,  75],
+    [212, 184, 106],
+    [184, 148,  58],
+    [224, 200, 122],
+    [160, 120,  48],
+    /* plateados */
+    [159, 168, 180],
+    [184, 196, 206],
+    [200, 212, 222],
+    [128, 144, 160],
+    /* cálido tenue */
+    [212, 200, 154],
+    [192, 184, 128],
+  ];
+
+  /* ── FAMILIAS DE GLIFOS alien bio-mecánico ── */
+  /* Cada función recibe (ctx, s) donde s = radio del glifo */
+  const GLYPHS = [
+    /* 0 · Cruz astral de 8 brazos */
+    function(c,s){ c.moveTo(0,-s);c.lineTo(0,s);c.moveTo(-s,0);c.lineTo(s,0);c.moveTo(-s*.71,-s*.71);c.lineTo(s*.71,s*.71);c.moveTo(s*.71,-s*.71);c.lineTo(-s*.71,s*.71); },
+    /* 1 · Triángulo con eje vertebral */
+    function(c,s){ c.moveTo(0,-s);c.lineTo(-s*.87,s*.5);c.lineTo(s*.87,s*.5);c.closePath();c.moveTo(0,-s*.3);c.lineTo(0,s*.5); },
+    /* 2 · Ankh alien */
+    function(c,s){ c.moveTo(0,-s*.1);c.lineTo(0,s);c.moveTo(-s*.55,-s*.15);c.lineTo(s*.55,-s*.15);c.arc(0,-s*.5,s*.38,0,Math.PI*2); },
+    /* 3 · Ojo bio-mecánico */
+    function(c,s){ c.arc(0,0,s*.55,0,Math.PI*2);c.moveTo(-s,-s*.08);c.lineTo(-s*.55,0);c.lineTo(-s,s*.08);c.moveTo(s,-s*.08);c.lineTo(s*.55,0);c.lineTo(s,s*.08); },
+    /* 4 · Diamante nervado */
+    function(c,s){ c.moveTo(0,-s);c.lineTo(s*.65,0);c.lineTo(0,s);c.lineTo(-s*.65,0);c.closePath();c.moveTo(0,-s*.45);c.lineTo(0,s*.45);c.moveTo(-s*.32,0);c.lineTo(s*.32,0); },
+    /* 5 · Vértebra doble */
+    function(c,s){ c.moveTo(-s,s*.28);c.bezierCurveTo(-s*.3,-s*.08,s*.3,-s*.08,s,s*.28);c.moveTo(-s,-s*.28);c.bezierCurveTo(-s*.3,s*.08,s*.3,s*.08,s,-s*.28);c.moveTo(0,-s*.6);c.lineTo(0,s*.6); },
+    /* 6 · Nodo celular con antenas */
+    function(c,s){ c.arc(0,0,s*.45,0,Math.PI*2);c.moveTo(-s,0);c.lineTo(-s*.45,0);c.moveTo(s*.45,0);c.lineTo(s,0);c.moveTo(0,-s*.45);c.lineTo(0,-s);c.moveTo(0,s*.45);c.lineTo(0,s); },
+    /* 7 · Escáner de esquinas (bracket alien) */
+    function(c,s){ var h=s*.55;c.moveTo(-s,-h);c.lineTo(-s*.4,-h);c.moveTo(s*.4,-h);c.lineTo(s,-h);c.lineTo(s,-s*.3);c.moveTo(s,s*.3);c.lineTo(s,h);c.lineTo(s*.4,h);c.moveTo(-s*.4,h);c.lineTo(-s,h);c.lineTo(-s,s*.3);c.moveTo(-s,-s*.3);c.lineTo(-s,-h); },
+    /* 8 · Runa Ψ / tridente */
+    function(c,s){ c.moveTo(-s*.7,0);c.bezierCurveTo(-s*.7,-s,s*.7,-s,s*.7,0);c.moveTo(0,-s*.75);c.lineTo(0,s);c.moveTo(-s*.35,s*.35);c.lineTo(s*.35,s*.35); },
+    /* 9 · Doble chevron alien */
+    function(c,s){ c.moveTo(-s,s*.1);c.lineTo(0,-s*.7);c.lineTo(s,s*.1);c.moveTo(-s*.6,s*.6);c.lineTo(0,-s*.2);c.lineTo(s*.6,s*.6); },
+    /* 10 · Espiral / caracol */
+    function(c,s){ var steps=20,a=0;c.moveTo(s*.05,0);for(var i=1;i<=steps;i++){a=i*(Math.PI*2/steps);var r=s*.05+s*.95*(i/steps);c.lineTo(r*Math.cos(a),r*Math.sin(a));} },
+    /* 11 · Nervio ramificado */
+    function(c,s){ c.moveTo(0,s*.8);c.lineTo(0,0);c.lineTo(-s*.7,-s*.55);c.moveTo(0,0);c.lineTo(s*.7,-s*.55);c.moveTo(0,0);c.lineTo(0,-s*.8);c.moveTo(-s*.7,-s*.55);c.lineTo(-s*.95,-s*.35);c.moveTo(s*.7,-s*.55);c.lineTo(s*.95,-s*.35); },
+    /* 12 · Membrana elíptica con eje */
+    function(c,s){ c.ellipse(0,0,s*.85,s*.5,0,0,Math.PI*2);c.moveTo(-s*.85,0);c.lineTo(s*.85,0);c.moveTo(0,-s*.5);c.lineTo(0,s*.5); },
+    /* 13 · Cruz cuadrada alien */
+    function(c,s){ c.rect(-s*.28,-s,s*.56,s*2);c.rect(-s,-s*.28,s*2,s*.56); },
+    /* 14 · Constelación / patrón estelar */
+    function(c,s){ var pts=[[0,-s],[s*.95,-s*.31],[s*.59,s*.81],[-s*.59,s*.81],[-s*.95,-s*.31]];for(var i=0;i<pts.length;i++){var a=pts[i],b=pts[(i+1)%pts.length];c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.arc(a[0],a[1],s*.08,0,Math.PI*2);} },
+    /* 15 · Tubo orgánico doble */
+    function(c,s){ c.moveTo(-s,s*.22);c.bezierCurveTo(-s*.28,s*.22,s*.28,-s*.22,s,-s*.22);c.moveTo(-s,-s*.22);c.bezierCurveTo(-s*.28,-s*.22,s*.28,s*.22,s,s*.22);c.moveTo(-s,-s*.22);c.lineTo(-s,s*.22);c.moveTo(s,-s*.22);c.lineTo(s,s*.22); },
+  ];
+
+  /* ── POOL DE GLIFOS — datos puros, sin objetos DOM ── */
+  const POOL = 80;
+  const gx    = new Float32Array(POOL);  // posición x
+  const gy    = new Float32Array(POOL);  // posición y
+  const gsz   = new Float32Array(POOL);  // tamaño (radio)
+  const grot  = new Float32Array(POOL);  // rotación actual
+  const grspd = new Float32Array(POOL);  // velocidad rotación
+  const gdx   = new Float32Array(POOL);  // deriva x
+  const gdy   = new Float32Array(POOL);  // deriva y
+  const galph = new Float32Array(POOL);  // alpha actual
+  const gatgt = new Float32Array(POOL);  // alpha objetivo (peak)
+  const gph   = new Float32Array(POOL);  // fase del pulso
+  const gspd  = new Float32Array(POOL);  // velocidad del pulso
+  const glife = new Int32Array(POOL);    // vida actual (frames)
+  const gmaxl = new Int32Array(POOL);    // vida máxima (frames)
+  const ghold = new Int32Array(POOL);    // frame en que pasa a hold
+  const gst   = new Uint8Array(POOL);    // estado: 0=in 1=hold 2=out
+  const gfn   = new Uint8Array(POOL);    // índice de glifo
+  const gcol  = new Uint8Array(POOL);    // índice de color
+
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+  function rndInt(n){ return Math.floor(Math.random()*n); }
+
+  function initSlot(i, stagger) {
+    gx[i]    = rnd(0, W || window.innerWidth);
+    gy[i]    = rnd(0, H || window.innerHeight);
+    gsz[i]   = rnd(3.5, 13);
+    grot[i]  = rnd(0, Math.PI*2);
+    grspd[i] = rnd(-0.0025, 0.0025);
+    gdx[i]   = rnd(-0.10, 0.10);
+    gdy[i]   = rnd(-0.06, 0.06);
+    /* alpha muy bajo — decorativo, no invasivo */
+    gatgt[i] = rnd(0.03, 0.11);
+    galph[i] = stagger ? gatgt[i] * rnd(0, 1) : 0;
+    gph[i]   = rnd(0, Math.PI*2);
+    gspd[i]  = rnd(0.25, 0.80);
+    gmaxl[i] = 220 + rndInt(380);
+    ghold[i] = 35  + rndInt(70);
+    glife[i] = stagger ? rndInt(gmaxl[i]) : 0;
+    gst[i]   = stagger ? 1 : 0;  // stagger = ya en hold
+    gfn[i]   = rndInt(GLYPHS.length);
+    gcol[i]  = rndInt(PAL.length);
+  }
+
+  for (let i = 0; i < POOL; i++) initSlot(i, true);
+
+  /* ── TICK — integrado en MainLoop ── */
+  MainLoop.add(function glyphFieldTick(dt, t) {
+    ctx.clearRect(0, 0, W, H);
+
+    for (let i = 0; i < POOL; i++) {
+      /* actualizar vida y posición */
+      glife[i]++;
+      grot[i] += grspd[i];
+      gx[i]   += gdx[i];
+      gy[i]   += gdy[i];
+
+      /* wrap de bordes */
+      if (gx[i] < -16) gx[i] = W + 16;
+      else if (gx[i] > W + 16) gx[i] = -16;
+      if (gy[i] < -16) gy[i] = H + 16;
+      else if (gy[i] > H + 16) gy[i] = -16;
+
+      /* máquina de estados */
+      if (gst[i] === 0) {
+        /* fade in suave */
+        galph[i] += (gatgt[i] - galph[i]) * 0.038;
+        if (glife[i] >= ghold[i]) gst[i] = 1;
+      } else if (gst[i] === 1) {
+        /* pulso sinusoidal — solo modula amplitude un 35% */
+        galph[i] = gatgt[i] * (0.65 + 0.35 * Math.sin(t * gspd[i] + gph[i]));
+        if (glife[i] >= gmaxl[i] - 55) gst[i] = 2;
+      } else {
+        /* fade out */
+        galph[i] *= 0.960;
+        if (galph[i] < 0.003 || glife[i] >= gmaxl[i]) {
+          initSlot(i, false);  /* renacer en posición aleatoria */
+          continue;
+        }
+      }
+
+      /* skip si invisible */
+      if (galph[i] < 0.003) continue;
+
+      /* dibujar — solo stroke, sin fill, sin sombra */
+      const col = PAL[gcol[i]];
+      ctx.save();
+      ctx.translate(gx[i], gy[i]);
+      ctx.rotate(grot[i]);
+      ctx.globalAlpha = galph[i];
+      ctx.strokeStyle = 'rgb(' + col[0] + ',' + col[1] + ',' + col[2] + ')';
+      ctx.lineWidth   = gsz[i] > 9 ? 0.65 : 0.5;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+      ctx.beginPath();
+      GLYPHS[gfn[i]](ctx, gsz[i]);
+      ctx.stroke();
+      ctx.restore();
+    }
+  });
+})();
+
+
 /* Branding solo en dev — en producción el security module silencia la consola */
 if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.includes('.local')) {
   console.log('%c✦ ANTARES ✦','color:#b892d8;font-family:serif;font-size:13px;letter-spacing:4px;background:#050208;padding:8px 16px;border:1px solid rgba(120,80,160,0.30);');

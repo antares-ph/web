@@ -87,6 +87,13 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
   will-change: transform; transform: translateZ(0);
 }
 
+/* ── CANVAS GLIFOS ALIEN ── */
+#glyph-canvas {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+  will-change: opacity; transform: translateZ(0);
+}
+
 /* ── OVERLAY DE RUIDO ── */
 .noise-overlay {
   position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.022;
