@@ -70,10 +70,10 @@ body {
   cursor: default;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  isolation: isolate;
 }
 
 body, a, button, .gallery-card, .ig-cell, .bio-tag, * { cursor: default !important; }
+.gallery-card, .gallery-card *, .gallery-card h3, .gallery-card p { text-decoration: none !important; }
 a, button, .gallery-card, .ig-cell, .bio-tag,
 [role="button"], .nav-link, .btn-organic, .ig-handle { cursor: pointer !important; }
 #cursorOuter, #cursorInner { display: none !important; }
@@ -85,13 +85,6 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   z-index: 0; pointer-events: none; opacity: 0.18;
   will-change: transform; transform: translateZ(0);
-}
-
-/* ── CANVAS GLIFOS ALIEN ── */
-#glyph-canvas {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 0; pointer-events: none;
-  will-change: opacity; transform: translateZ(0);
 }
 
 /* ── OVERLAY DE RUIDO ── */
@@ -344,7 +337,7 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
 }
 
 /* ── SECCIONES BASE ── */
-.section { position: relative; z-index: 2; overflow: hidden; contain: layout style; }
+.section { position: relative; z-index: 2; overflow: visible; }
 
 /* ═══════════════════════════════════════════════
    HERO
@@ -356,8 +349,6 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
     radial-gradient(ellipse 75% 85% at 50% 50%, transparent 28%, rgba(0,0,0,0.60) 100%),
     radial-gradient(ellipse 55% 65% at 28% 38%, rgba(26,10,38,0.18) 0%, transparent 58%),
     radial-gradient(ellipse 45% 55% at 72% 62%, rgba(16,6,26,0.14) 0%, transparent 68%),
-    repeating-linear-gradient(90deg, transparent 0px, transparent 36px, rgba(50,46,36,0.03) 36px, rgba(50,46,36,0.03) 38px),
-    repeating-linear-gradient(0deg, transparent 0px, transparent 28px, rgba(40,38,30,0.02) 28px, rgba(40,38,30,0.02) 30px),
     var(--near-black);
 }
 
@@ -456,11 +447,61 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
 .btn-organic:hover .btn-organic__glow { opacity: 1; }
 
 /* ── SEPARADORES ORGÁNICOS ── */
-.organic-divider { position: relative; z-index: 2; height: 80px; overflow: visible; }
+.organic-divider { position: relative; z-index: 2; height: 80px; overflow: visible; cursor: default; }
 .organic-divider svg { width: 100%; height: 100%; }
 .divider-rib {
   stroke: rgba(120,85,155,0.32); stroke-width: 1.0; fill: none;
 }
+
+/* Breathing & color-shift animation on divider hover */
+.organic-divider,
+.giger-divider {
+  transition: filter 0.8s var(--ease-organic);
+}
+
+@keyframes dividerBreathe {
+  0%   { stroke: rgba(120,85,155,0.32); stroke-width: 1.0; }
+  25%  { stroke: rgba(176,164,140,0.70); stroke-width: 1.4; }
+  50%  { stroke: rgba(170,128,210,0.65); stroke-width: 1.6; }
+  75%  { stroke: rgba(212,175,80,0.55);  stroke-width: 1.3; }
+  100% { stroke: rgba(120,85,155,0.32); stroke-width: 1.0; }
+}
+
+@keyframes dividerRibBreathe {
+  0%   { stroke: rgba(140,108,180,0.45); stroke-width: 1.2; }
+  33%  { stroke: rgba(216,204,172,0.72); stroke-width: 1.6; }
+  66%  { stroke: rgba(170,128,210,0.68); stroke-width: 1.8; }
+  100% { stroke: rgba(140,108,180,0.45); stroke-width: 1.2; }
+}
+
+@keyframes dividerGlowPulse {
+  0%,100% { opacity: 0.92; filter: brightness(1);   }
+  50%      { opacity: 1.0;  filter: brightness(1.15); }
+}
+
+.organic-divider:hover .divider-rib,
+.organic-divider:hover .div-node {
+  animation: dividerBreathe 3.5s var(--ease-organic) infinite;
+}
+.organic-divider:hover .divider-rib.delay1 { animation-delay: 0.6s; }
+
+.giger-divider:hover .divider-rib {
+  animation: dividerRibBreathe 4s var(--ease-organic) infinite;
+}
+.giger-divider:hover .divider-rib.delay1 { animation-delay: 0.7s; }
+.giger-divider:hover .divider-rib.delay2 { animation-delay: 1.4s; }
+.giger-divider:hover {
+  animation: dividerGlowPulse 3s var(--ease-organic) infinite;
+}
+
+@keyframes dividerNodePulse {
+  0%,100% { r: 7;   opacity: 0.80; fill: #0a0514; }
+  50%      { r: 9.5; opacity: 1.0;  fill: #1a0830; }
+}
+.organic-divider:hover .div-node {
+  animation: dividerNodePulse 2.8s var(--ease-organic) infinite;
+}
+
 
 .giger-divider {
   position: relative; z-index: 2; height: 180px; overflow: hidden;
@@ -482,14 +523,7 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
     rgba(136,124,104,0.45), rgba(110,75,145,0.38), transparent);
   z-index: 3;
 }
-.giger-divider-inner-grid {
-  position: absolute; inset: 0; pointer-events: none; z-index: 1;
-  background:
-    repeating-linear-gradient(90deg, transparent 0px, transparent 34px,
-      rgba(55,40,70,0.04) 34px, rgba(55,40,70,0.04) 36px),
-    repeating-linear-gradient(0deg, transparent 0px, transparent 22px,
-      rgba(44,34,58,0.03) 22px, rgba(44,34,58,0.03) 24px);
-}
+.giger-divider-inner-grid { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
 .giger-divider-svg { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; }
 
 /* ═══════════════════════════════════════════════
@@ -498,20 +532,21 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
 .section--obra {
   padding: 6rem 8rem;
   background:
-    linear-gradient(to bottom, var(--black) 0%, var(--purple-dark) 50%, var(--black) 100%),
-    radial-gradient(ellipse 40% 60% at 20% 50%, rgba(26,10,38,0.10) 0%, transparent 70%);
+    linear-gradient(to bottom, var(--black) 0%, var(--purple-dark) 50%, var(--black) 100%);
   position: relative;
+  overflow: visible;
 }
-.section--obra::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  background:
-    repeating-linear-gradient(90deg, transparent 0px, transparent 60px,
-      rgba(50,36,68,0.025) 60px, rgba(50,36,68,0.025) 62px);
-}
+.section--obra::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; }
 
 .gallery-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 380px; gap: 2rem; position: relative; z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 300px);
+  gap: 2.2rem 3rem;
+  position: relative;
+  z-index: 2;
+  max-width: 860px;
+  margin: 0 auto;
 }
 
 .gallery-card {
@@ -519,15 +554,16 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
   display: flex; flex-direction: column;
   background: var(--bone-dark);
   border: 1px solid rgba(100,75,130,0.18);
+  text-decoration: none !important;
   will-change: transform, box-shadow;
+  transform-style: preserve-3d;
   transform: translateZ(0);
   transition:
-    transform 0.55s var(--ease-giger),
     box-shadow 0.55s var(--ease-organic),
     border-color 0.45s var(--ease-smooth);
 }
 .gallery-card:hover {
-  transform: translateY(-6px) translateZ(0) scale(1.01);
+  /* 3D tilt is handled by JS — only non-transform properties here */
   box-shadow:
     0 20px 50px rgba(80,50,110,0.30),
     0 8px 24px rgba(0,0,0,0.65),
@@ -571,10 +607,7 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
 .card-image-placeholder::before {
   content: ''; position: absolute; inset: 0;
   background:
-    repeating-linear-gradient(0deg, transparent 0px, transparent 14px,
-      rgba(70,50,90,0.05) 14px, rgba(70,50,90,0.05) 15px),
-    repeating-linear-gradient(90deg, transparent 0px, transparent 14px,
-      rgba(55,40,72,0.03) 14px, rgba(55,40,72,0.03) 15px);
+    repeating-linear-gradient(0deg, rgba(70,50,90,0.04) 0px, rgba(70,50,90,0.04) 1px, transparent 1px, transparent 14px);
   pointer-events: none;
 }
 
@@ -597,17 +630,21 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
 .card-num { display: none; }
 
 .card-info {
-  padding: 1rem 1.4rem; position: relative; z-index: 3; flex-shrink: 0;
-  background: linear-gradient(to bottom, transparent, rgba(8,5,12,0.55));
+  padding: 1.1rem 1.5rem 1.2rem; position: relative; z-index: 3; flex-shrink: 0;
+  background: linear-gradient(to bottom, rgba(4,2,8,0.0), rgba(4,2,8,0.72));
+  border-top: 1px solid rgba(100,75,130,0.12);
 }
 .card-title {
-  font-family: 'Cinzel', serif; font-size: 0.86rem; font-weight: 600;
-  letter-spacing: 0.22em; color: var(--text-primary); margin-bottom: 0.25rem;
-  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+  font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 600;
+  letter-spacing: 0.28em; color: var(--text-primary); margin-bottom: 0.3rem;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.95);
+  text-transform: uppercase;
+  text-decoration: none;
 }
 .card-meta {
-  font-family: 'Crimson Text', serif; font-size: 0.84rem;
-  color: var(--text-secondary); font-style: italic;
+  font-family: 'Crimson Text', serif; font-size: 0.80rem;
+  color: var(--text-dim); font-style: italic; letter-spacing: 0.04em;
+  opacity: 0.80;
 }
 .card-glow {
   position: absolute; inset: 0;
@@ -617,11 +654,51 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
 }
 .gallery-card:hover .card-glow { opacity: 1; }
 
-.card-slug {
-  font-family: 'Crimson Text', serif; font-size: 0.72rem; font-style: italic;
-  color: rgba(130,90,165,0.50); letter-spacing: 0.12em;
-  position: absolute; bottom: 0.6rem; right: 0.8rem;
+/* ═══ POKEMON / TCG FOIL EFFECT — follows mouse ═══ */
+.card-foil {
+  position: absolute; inset: 0; z-index: 5;
+  pointer-events: none; border-radius: inherit; overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(212,180,100,0.06) 30%,
+    rgba(200,220,240,0.10) 40%,
+    rgba(220,200,120,0.08) 50%,
+    rgba(180,200,230,0.06) 60%,
+    transparent 70%
+  );
+  background-size: 200% 200%;
+  mix-blend-mode: screen;
 }
+.gallery-card:hover .card-foil {
+  opacity: 1;
+}
+.card-foil-rainbow {
+  position: absolute; inset: 0; z-index: 5;
+  pointer-events: none; overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background: conic-gradient(
+    from var(--foil-angle, 0deg) at var(--foil-x, 50%) var(--foil-y, 50%),
+    rgba(200,168,75,0.00) 0%,
+    rgba(200,168,75,0.12) 8%,
+    rgba(184,196,210,0.10) 18%,
+    rgba(212,184,106,0.08) 28%,
+    rgba(159,168,180,0.12) 38%,
+    rgba(224,200,122,0.08) 50%,
+    rgba(200,212,222,0.10) 62%,
+    rgba(184,148,58,0.08) 72%,
+    rgba(128,144,160,0.10) 82%,
+    rgba(200,168,75,0.04) 92%,
+    rgba(200,168,75,0.00) 100%
+  );
+  mix-blend-mode: screen;
+}
+.gallery-card:hover .card-foil-rainbow { opacity: 1; }
+
+.card-slug { display: none; }
 
 .section-rib-left, .section-rib-right {
   position: absolute; top: 0; bottom: 0; width: 75px; pointer-events: none; z-index: 1;
@@ -661,11 +738,11 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
    TRIPTYCH INSTAGRAM — siempre 3 columnas en desktop
    ═══════════════════════════════════════════════ */
 .ig-grid-triptych {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem;
-  margin: 4rem auto; position: relative; z-index: 2; max-width: 1100px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.0rem;
+  margin: 4rem auto; position: relative; z-index: 2; max-width: 980px;
 }
 .ig-triptych-cell {
-  position: relative; aspect-ratio: 3/4; overflow: visible; background: transparent;
+  position: relative; aspect-ratio: 3/5; overflow: visible; background: transparent;
   text-decoration: none; display: block;
   transform-style: preserve-3d;
   transition: transform 0.55s var(--ease-giger);
@@ -767,7 +844,7 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
    SOBRE MÍ
    ═══════════════════════════════════════════════ */
 .section--sobre {
-  padding: 8rem;
+  padding: 7rem 8rem;
   background:
     linear-gradient(to bottom, var(--near-black) 0%, var(--purple-dark) 50%, var(--near-black) 100%);
   position: relative;
@@ -779,11 +856,27 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
   pointer-events: none;
 }
 .sobre-wrap {
-  display: grid; grid-template-columns: 300px 1fr; gap: 5rem;
-  align-items: start; position: relative; z-index: 2;
+  display: grid; grid-template-columns: 380px 1fr; gap: 5rem;
+  align-items: center; position: relative; z-index: 2;
+  max-width: 1100px; margin: 0 auto;
 }
-.sobre-skeleton { position: sticky; top: 120px; opacity: 0.78; }
-.sobre-skeleton svg { width: 100%; max-width: 280px; }
+.sobre-skeleton { 
+  position: sticky; top: 120px; width: 380px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.sobre-skeleton-inner {
+  position: relative;
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.sobre-skeleton-inner svg {
+  width: 100%;
+  max-width: 380px;
+  display: block;
+}
+
+.sobre-skeleton svg { width: 100%; max-width: 380px; }
 .sobre-content { max-width: 700px; }
 .bio-text {
   font-size: 1.16rem; line-height: 1.95; color: var(--text-secondary);
@@ -831,9 +924,10 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
 .section--contacto::before {
   content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
   background:
-    repeating-linear-gradient(90deg, transparent 0px, transparent 44px,
-      rgba(55,40,70,0.025) 44px, rgba(55,40,70,0.025) 46px);
-}
+    background: none;
+  }
+
+
 .section--contacto::after {
   content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
   background: linear-gradient(to right, transparent, rgba(130,90,165,0.35),
@@ -912,6 +1006,104 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
 }
 .btn-organic--submit.sent {
   border-color: rgba(130,90,165,0.75); color: rgba(190,148,225,0.90); animation: none;
+}
+
+
+/* ═══════════════════════════════════════════════
+   SOBRE MÍ — PHOTO CARD DORADO
+   ═══════════════════════════════════════════════ */
+.sobre-photo-card {
+  position: absolute;
+  /* Centrado dentro del skeleton */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 260px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transform-style: flat;
+  transition: box-shadow 0.55s var(--ease-organic);
+  will-change: transform;
+}
+.sobre-photo-card:hover {
+  transform: translate(-50%, -52%) scale(1.015);
+}
+
+.sobre-photo-frame {
+  position: absolute;
+  inset: -14px;
+  pointer-events: none;
+  z-index: 8;
+  overflow: visible;
+  opacity: 0.55;
+  transition: opacity 0.45s ease;
+}
+.sobre-photo-card:hover .sobre-photo-frame { opacity: 1; }
+.sobre-photo-frame svg { width: 100%; height: 100%; overflow: visible; }
+
+.photo-frame-corner {
+  fill: none; stroke: rgba(212,175,80,0.90); stroke-width: 1.2; stroke-linecap: butt;
+}
+.photo-frame-spine {
+  fill: none; stroke: rgba(192,155,60,0.55); stroke-width: 0.65; stroke-linecap: butt;
+}
+.photo-frame-rib {
+  fill: none; stroke: rgba(212,175,80,0.72); stroke-width: 0.70; stroke-linecap: round;
+}
+.photo-frame-rib-h {
+  fill: none; stroke: rgba(192,155,60,0.38); stroke-width: 0.55; stroke-dasharray: 3 4;
+}
+.photo-frame-node {
+  fill: rgba(18,12,4,0.96); stroke: rgba(212,175,80,0.80); stroke-width: 1;
+}
+.photo-frame-node-sm {
+  fill: rgba(14,9,2,0.90); stroke: rgba(180,145,55,0.55); stroke-width: 0.75;
+}
+.photo-frame-vertebra {
+  fill: rgba(10,6,1,0.90); stroke: rgba(212,175,80,0.68); stroke-width: 0.85;
+}
+
+.sobre-photo-wrap {
+  width: 100%; aspect-ratio: 3/4; position: relative; overflow: hidden;
+  background: var(--bone-dark); border: 1px solid rgba(160,125,45,0.22);
+}
+.sobre-photo-img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.60s var(--ease-giger), filter 0.45s var(--ease-smooth);
+  transform: scale(1.02); will-change: transform;
+  pointer-events: none; user-select: none; -webkit-user-drag: none;
+}
+.sobre-photo-card:hover .sobre-photo-img {
+  transform: scale(1.05); filter: brightness(1.04) saturate(0.90);
+}
+.sobre-photo-placeholder {
+  position: absolute; inset: 0; display: none;
+  align-items: center; justify-content: center;
+  background: linear-gradient(135deg,
+    rgba(18,12,4,1) 0%, rgba(30,22,8,1) 40%, rgba(48,36,12,1) 70%, rgba(32,25,8,1) 100%);
+}
+.sobre-photo-label {
+  font-family: 'Cinzel', serif; font-size: 0.56rem;
+  letter-spacing: 0.34em; color: rgba(180,145,55,0.42);
+}
+.sobre-photo-caption {
+  padding: 0.85rem 0 0; display: flex; flex-direction: column; gap: 0.22rem;
+  border-top: 1px solid rgba(160,125,45,0.18); margin-top: 0;
+}
+.sobre-photo-name {
+  font-family: 'Cinzel', serif; font-size: 0.76rem; font-weight: 600;
+  letter-spacing: 0.40em; color: rgba(212,175,80,0.85);
+  text-shadow: 0 0 18px rgba(180,145,55,0.20), 0 1px 6px rgba(0,0,0,0.90);
+}
+.sobre-photo-role {
+  font-family: 'Crimson Text', serif; font-size: 0.76rem; font-style: italic;
+  color: var(--text-dim); letter-spacing: 0.04em;
+}
+.sobre-photo-card:hover {
+  box-shadow: 0 18px 48px rgba(0,0,0,0.70), 0 0 28px rgba(180,145,55,0.09);
+  transform: translate(-50%, -53%) scale(1.015);
 }
 
 /* ── FOOTER ── */
@@ -1002,6 +1194,19 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
   transition-delay: calc(var(--card-index, 0) * 75ms);
 }
 
+
+/* ── CARD REVEAL — classes (replaces inline opacity/transform) ── */
+.card-hidden {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.70s cubic-bezier(0.19,1,0.22,1),
+              transform 0.70s cubic-bezier(0.19,1,0.22,1);
+}
+.card-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar       { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--black); }
@@ -1009,10 +1214,11 @@ a, button, .gallery-card, .ig-cell, .bio-tag,
 ::-webkit-scrollbar-thumb:hover { background: rgba(130,90,165,0.60); }
 
 /* ── GPU layers ── */
-.gallery-grid { perspective: 900px; }
+.gallery-grid { perspective: 1200px; }
 .gallery-card {
   transform-style: preserve-3d;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 .card-img, .ig-img {
   pointer-events: none;
@@ -1036,14 +1242,19 @@ html { scroll-behavior: smooth; }
 @media (max-width: 1200px) {
   .section--hero { padding: 0 6rem; }
   .section--obra, .section--sobre, .section--instagram, .section--contacto { padding: 6rem 4rem; }
-  .gallery-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 340px; }
+  .gallery-grid { grid-template-columns: repeat(2, 1fr) !important; grid-template-rows: none !important; grid-auto-rows: 280px !important; gap: 2rem !important; }
+  .sobre-wrap { grid-template-columns: 320px 1fr; }
+  .sobre-skeleton { width: 320px; }
+  .sobre-skeleton svg, .sobre-skeleton-inner svg { max-width: 320px; }
 }
 
 @media (max-width: 900px) {
-  .ig-grid-triptych { grid-template-columns: 1fr; gap: 1.8rem; max-width: 420px; }
+  .ig-grid-triptych { grid-template-columns: 1fr; gap: 1.8rem; max-width: 380px; }
   .ig-triptych-cell { aspect-ratio: 4/3; }
-  .sobre-wrap { grid-template-columns: 1fr; gap: 3rem; }
-  .sobre-skeleton { position: relative; top: 0; max-width: 180px; }
+  .sobre-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
+  .sobre-skeleton { position: relative; top: 0; max-width: 240px; width: 240px; }
+  .sobre-skeleton-inner svg, .sobre-skeleton svg { max-width: 240px; }
+  .sobre-photo-card { width: 190px; }
   .section--sobre { padding: 5rem 3rem; }
 }
 
@@ -1066,38 +1277,51 @@ html { scroll-behavior: smooth; }
   .nav-mobile-overlay.open { display: block; }
 
   /* Hero */
-  .rib-structure { width: 65px; opacity: 0.32; }
-  .section--hero { padding: 0 1.5rem; }
-  .giger-title-svg { max-width: clamp(260px, 94vw, 480px); }
+  .rib-structure { width: 50px; opacity: 0.25; }
+  .section--hero { padding: 0 1.2rem; }
+  .giger-title-svg { max-width: clamp(240px, 92vw, 480px); }
   .hero-content { transform: translateY(-5%); }
-  .hero-subtitle { font-size: 1.1rem; }
+  .hero-subtitle { font-size: 1rem; line-height: 1.7; }
 
   /* Secciones */
-  .section--obra { padding: 4rem 1.5rem; }
-  .gallery-grid { grid-template-columns: 1fr; grid-auto-rows: 280px; gap: 1.5rem; }
+  .section--obra { padding: 4rem 1.2rem; }
+  .gallery-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: none !important;
+    grid-auto-rows: auto !important;
+    gap: 1.8rem !important;
+  }
+  .gallery-card { min-height: 320px; }
   .section--sobre { padding: 4rem 1.5rem; }
   .section--instagram { padding: 4rem 1.5rem; }
-  .ig-grid-triptych { grid-template-columns: 1fr; max-width: 100%; }
+  .ig-grid-triptych { grid-template-columns: 1fr !important; max-width: 100%; gap: 1.5rem !important; }
   .ig-triptych-cell { aspect-ratio: 3/2; }
   .section--contacto { padding: 4rem 1.5rem; }
-  .giger-divider { height: 90px; }
+  .giger-divider { height: 80px; }
 
   /* Sobre mí */
   .sobre-wrap { grid-template-columns: 1fr; }
   .sobre-skeleton { display: none; }
+  .sobre-photo-card { position: relative; left: auto; top: auto; width: 200px; margin: 0 auto 2rem; }
 
   /* Section ribs - ocultar en mobile */
   .section-rib-left, .section-rib-right { display: none; }
   .rib-structure--right { display: none; }
+
+  /* Disable 3D tilt on touch devices (performance) */
+  .gallery-card { transform: none !important; }
 }
 
 @media (max-width: 480px) {
-  .nav-brand { letter-spacing: 0.22em; font-size: 0.82rem; }
-  .section--obra { padding: 3rem 1rem; }
-  .gallery-grid { gap: 1rem; }
-  .section--contacto { padding: 3rem 1rem; }
-  .section--instagram { padding: 3rem 1rem; }
+  .nav-brand { letter-spacing: 0.22em; font-size: 0.78rem; }
+  .section--obra { padding: 3rem 0.8rem; }
+  .gallery-grid { gap: 1.2rem !important; }
+  .gallery-card { min-height: 280px; }
+  .section--contacto { padding: 3rem 0.8rem; }
+  .section--instagram { padding: 3rem 0.8rem; }
   .btn-organic { padding: 0.9rem 2rem; font-size: 0.65rem; letter-spacing: 0.28em; }
+  .card-info { padding: 0.9rem 1rem 1rem; }
+  .card-title { font-size: 0.74rem; letter-spacing: 0.22em; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1112,18 +1336,51 @@ html { scroll-behavior: smooth; }
    ANTARES — FRAME ANGÉLICO v5 · OSSEOUS-SILVER · ZERO LAG
    ══════════════════════════════════════════════════════════════ */
 
+
+/* ── SHINE OVERLAY — sigue el mouse con el efecto brújula ── */
+.gallery-card::after,
+.sobre-photo-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--shine-x, 50%) var(--shine-y, 50%),
+    rgba(255,255,255,0.055) 0%,
+    rgba(255,255,255,0.015) 35%,
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: 9;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  border-radius: inherit;
+}
+.gallery-card:hover::after,
+.sobre-photo-card:hover::after {
+  opacity: 1;
+}
+
+/* ── GALLERY CARD — ensure no text-decoration on all children ── */
+.gallery-card,
+.gallery-card *,
+.gallery-card h3,
+.gallery-card p {
+  text-decoration: none !important;
+}
+
 /* ── GAP entre cards */
 .gallery-grid {
-  gap: 4rem !important;
+  gap: 3.5rem 3rem;
 }
 .ig-grid-triptych {
-  gap: 4rem !important;
+  gap: 3rem;
 }
 
 /* ── GALLERY CARD: overflow visible */
 .gallery-card {
   overflow: visible !important;
   border: none !important;
+  transition: box-shadow 0.55s var(--ease-organic), border-color 0.45s var(--ease-smooth) !important;
 }
 .ig-triptych-cell {
   overflow: visible !important;
@@ -1246,5 +1503,317 @@ html { scroll-behavior: smooth; }
   .biomech-frame {
     opacity: 0.32 !important;
     transition: none !important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   ANTARES — MEJORAS v7
+   • Cards OBRA = mismo sistema visual que Instagram (biomech-frame)
+   • Hover: zoom suave GPU, cero blur en todas las cards
+   • Sobre-mí: zoom limpio, sin blur
+   • Círculos separadores: perfectamente redondos + hover con paleta
+   • Layout obra 2×2 simétrico armonioso
+   • Respiración orgánica sincronizada
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── PALETA DE HOVER para nodos circulares ── */
+:root {
+  --cn-1: #a07bd4;
+  --cn-2: #d48a6a;
+  --cn-3: #6ab4d4;
+  --cn-4: #c4a84a;
+  --cn-5: #7ac4a0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   GALLERY-CARD --OBRA
+   Hereda la apariencia de ig-triptych-cell:
+   imagen que llena, biomech-frame, caption bajo la imagen
+   ══════════════════════════════════════════════════════════ */
+.gallery-card--obra {
+  background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  overflow: visible !important;
+  position: relative;
+  cursor: pointer !important;
+  will-change: transform;
+  transform-style: preserve-3d;
+  /* El compass JS maneja el transform — solo transición de sombra aquí */
+  transition:
+    box-shadow 0.55s var(--ease-organic);
+}
+
+/* Imagen — misma proporción que ig-triptych-cell */
+.gallery-card--obra .ig-img-wrap {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.gallery-card--obra .ig-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.02);
+  transition: transform 0.60s var(--ease-giger);
+  will-change: transform;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.gallery-card--obra:hover .ig-img {
+  transform: scale(1.06);
+}
+
+/* Caption: aparece en hover (igual que ig-caption) */
+.gallery-card--obra .ig-caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 1.2rem 1rem 0.8rem;
+  background: linear-gradient(to top, rgba(4,2,8,0.90) 0%, rgba(4,2,8,0.50) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  opacity: 0;
+  transition: opacity 0.30s var(--ease-smooth);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.gallery-card--obra:hover .ig-caption {
+  opacity: 1;
+}
+
+.obra-caption-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.70rem;
+  letter-spacing: 0.24em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.obra-caption-meta {
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  font-size: 0.76rem;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+/* Biomech-frame en obra cards — mismos valores que ig-triptych */
+.gallery-card--obra .biomech-frame {
+  position: absolute;
+  inset: -8px;
+  pointer-events: none;
+  z-index: 6;
+  overflow: visible;
+  opacity: 0.28;
+  transition: opacity 0.45s ease;
+}
+
+.gallery-card--obra:hover .biomech-frame {
+  opacity: 0.92;
+}
+
+/* Shine overlay */
+.gallery-card--obra::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--shine-x, 50%) var(--shine-y, 50%),
+    rgba(255,255,255,0.055) 0%,
+    rgba(255,255,255,0.015) 35%,
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: 9;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.gallery-card--obra:hover::after {
+  opacity: 1;
+}
+
+/* Foil layers */
+.gallery-card--obra .card-foil {
+  position: absolute; inset: 0; z-index: 5;
+  pointer-events: none; overflow: hidden;
+  opacity: 0; transition: opacity 0.35s ease;
+  background: linear-gradient(
+    115deg,
+    transparent 20%, rgba(212,180,100,0.06) 30%,
+    rgba(200,220,240,0.10) 40%, rgba(220,200,120,0.08) 50%,
+    rgba(180,200,230,0.06) 60%, transparent 70%
+  );
+  background-size: 200% 200%; mix-blend-mode: screen;
+}
+.gallery-card--obra:hover .card-foil { opacity: 1; }
+
+.gallery-card--obra .card-foil-rainbow {
+  position: absolute; inset: 0; z-index: 5;
+  pointer-events: none; overflow: hidden;
+  opacity: 0; transition: opacity 0.35s ease;
+  background: conic-gradient(
+    from var(--foil-angle, 0deg) at var(--foil-x, 50%) var(--foil-y, 50%),
+    rgba(200,168,75,0.00) 0%, rgba(200,168,75,0.12) 8%,
+    rgba(184,196,210,0.10) 18%, rgba(212,184,106,0.08) 28%,
+    rgba(159,168,180,0.12) 38%, rgba(224,200,122,0.08) 50%,
+    rgba(200,212,222,0.10) 62%, rgba(184,148,58,0.08) 72%,
+    rgba(128,144,160,0.10) 82%, rgba(200,168,75,0.04) 92%,
+    rgba(200,168,75,0.00) 100%
+  );
+  mix-blend-mode: screen;
+}
+.gallery-card--obra:hover .card-foil-rainbow { opacity: 1; }
+
+/* Hover shadow — igual que ig */
+.gallery-card--obra:hover {
+  box-shadow:
+    0 16px 40px rgba(0,0,0,0.72),
+    0 0 18px rgba(170,185,210,0.07) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   GALLERY GRID — 2×2 simétrico, mismo max-width que ig
+   ══════════════════════════════════════════════════════════ */
+.gallery-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  grid-template-rows: none !important;
+  grid-auto-rows: auto !important;
+  gap: 3.5rem 3rem !important;
+  max-width: 860px !important;
+  margin: 0 auto !important;
+  perspective: 1200px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   INSTAGRAM GRID — mismo max-width, simétrico
+   ══════════════════════════════════════════════════════════ */
+.ig-grid-triptych {
+  max-width: 860px !important;
+  gap: 3rem !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   IG-TRIPTYCH-CELL — eliminar blur, solo zoom
+   ══════════════════════════════════════════════════════════ */
+.ig-triptych-cell:hover .ig-img {
+  transform: scale(1.06);
+  filter: none !important;
+}
+
+/* Quitar cualquier blur/backdrop-filter en hover de ig */
+.ig-triptych-cell:hover {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SOBRE-MÍ PHOTO CARD — zoom limpio, sin blur absoluto
+   ══════════════════════════════════════════════════════════ */
+.sobre-photo-card:hover {
+  transform: translate(-50%, -52%) scale(1.018) !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.sobre-photo-card:hover .sobre-photo-img {
+  transform: scale(1.05);
+  filter: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CÍRCULOS SEPARADORES — perfectamente redondos + hover paleta
+   Transición CSS pura — cero JS por frame — GPU compositor
+   ══════════════════════════════════════════════════════════ */
+.circle-node {
+  transition:
+    stroke 0.38s var(--ease-organic),
+    fill   0.38s var(--ease-organic),
+    r      0.38s var(--ease-bounce);
+  will-change: stroke, fill;
+}
+
+/* Clases de color activadas por JS delegado (un solo listener) */
+.circle-node.hov-1 {
+  stroke: var(--cn-1) !important;
+  fill: rgba(160,123,212,0.15) !important;
+  filter: drop-shadow(0 0 7px var(--cn-1));
+}
+.circle-node.hov-2 {
+  stroke: var(--cn-2) !important;
+  fill: rgba(212,138,106,0.15) !important;
+  filter: drop-shadow(0 0 7px var(--cn-2));
+}
+.circle-node.hov-3 {
+  stroke: var(--cn-3) !important;
+  fill: rgba(106,180,212,0.15) !important;
+  filter: drop-shadow(0 0 7px var(--cn-3));
+}
+.circle-node.hov-4 {
+  stroke: var(--cn-4) !important;
+  fill: rgba(196,168,74,0.15) !important;
+  filter: drop-shadow(0 0 7px var(--cn-4));
+}
+.circle-node.hov-5 {
+  stroke: var(--cn-5) !important;
+  fill: rgba(122,196,160,0.15) !important;
+  filter: drop-shadow(0 0 7px var(--cn-5));
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESPIRACIÓN ORGÁNICA — cards sincronizan sutilmente
+   Solo opacity en compositor thread, zero repaint
+   ══════════════════════════════════════════════════════════ */
+@keyframes cardBreathe {
+  0%, 100% { opacity: 1;    }
+  50%       { opacity: 0.93; }
+}
+
+.gallery-card--obra.card-visible:not(:hover),
+.ig-triptych-cell.card-visible:not(:hover) {
+  animation: cardBreathe 5s var(--ease-organic) infinite;
+}
+
+.gallery-card--obra:nth-child(1) { animation-delay:  0s; }
+.gallery-card--obra:nth-child(2) { animation-delay:  1.25s; }
+.gallery-card--obra:nth-child(3) { animation-delay:  2.5s; }
+.gallery-card--obra:nth-child(4) { animation-delay:  3.75s; }
+
+.ig-triptych-cell:nth-child(1)   { animation-delay:  0.6s; }
+.ig-triptych-cell:nth-child(2)   { animation-delay:  1.8s; }
+.ig-triptych-cell:nth-child(3)   { animation-delay:  3.0s; }
+
+/* Pausar al hover */
+.gallery-card--obra:hover,
+.ig-triptych-cell:hover {
+  animation-play-state: paused !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — ajustar obra cards en breakpoints
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .gallery-card--obra { min-height: unset; }
+  .gallery-card--obra .ig-img-wrap { aspect-ratio: 3/4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-card--obra,
+  .ig-triptych-cell,
+  .sobre-photo-card,
+  .circle-node {
+    transition: none !important;
+    animation: none !important;
   }
 }

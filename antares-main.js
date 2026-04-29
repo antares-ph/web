@@ -767,21 +767,20 @@ const GigerTextureEngine = (function() {
    FADE-IN STAGGER DE CARDS
    ══════════════════════════════════════ */
 (function initStaggerReveal() {
-  const cards = document.querySelectorAll('.gallery-card, .ig-triptych-cell');
+  const cards = document.querySelectorAll('.gallery-card, .ig-triptych-cell, .sobre-photo-card');
   if (!cards.length || !('IntersectionObserver' in window)) return;
 
   cards.forEach((card, i) => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(24px)';
-    card.style.transition = `opacity 0.70s cubic-bezier(0.19,1,0.22,1) ${i % 3 * 80}ms,
-                             transform 0.70s cubic-bezier(0.19,1,0.22,1) ${i % 3 * 80}ms`;
+    card.classList.add('card-hidden');
+    card.style.transitionDelay = (i % 3 * 80) + 'ms';
   });
 
   const obs = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
+        entry.target.classList.remove('card-hidden');
+        entry.target.classList.add('card-visible');
+        entry.target.style.transitionDelay = '';
         obs.unobserve(entry.target);
       }
     });
@@ -823,43 +822,151 @@ const GigerTextureEngine = (function() {
 
 
 /* ══════════════════════════════════════
-   TILT 3D EN GALLERY CARDS (suavizado)
+   BRÚJULA CARD EFFECT — Efecto compás 3D
+   El card gira levemente hacia donde apunta el mouse,
+   como una brújula que sigue el cursor en sus bordes.
+   Natural, estático, elegante. Zero lag CSS transform.
    ══════════════════════════════════════ */
-(function initCardTilt() {
-  const MAX_TILT = 5;
-  document.querySelectorAll('.gallery-card').forEach(card => {
-    let animId = null;
-    let targetRX = 0, targetRY = 0, currentRX = 0, currentRY = 0;
+(function initCardCompass() {
+  /* Parámetros de la brújula */
+  const MAX_TILT  = 7;    /* grados máximos — sutil pero perceptible */
+  const SPRING    = 0.06; /* amortiguación — movimiento orgánico */
+  const SNAP_BACK = 0.74; /* velocidad de retorno al reposo */
+
+  /* Touch: no tilt en móvil (performance + usabilidad) */
+  const isTouchOnly = window.matchMedia('(hover: none)').matches;
+  if (isTouchOnly) return;
+
+  function initCard(card) {
+    let rafId    = null;
+    let active   = false;
+    let tx = 0, ty = 0;   /* target angles */
+    let cx = 0, cy = 0;   /* current angles */
+    let mx = 0.5, my = 0.5; /* normalized mouse pos */
+
+    /* Foil layers — inyectar si no existen */
+    if (!card.querySelector('.card-foil-rainbow')) {
+      const f = document.createElement('div');
+      f.className = 'card-foil-rainbow';
+      card.appendChild(f);
+    }
+    if (!card.querySelector('.card-foil')) {
+      const f2 = document.createElement('div');
+      f2.className = 'card-foil';
+      card.appendChild(f2);
+    }
+    const foilR = card.querySelector('.card-foil-rainbow');
+    const foilF = card.querySelector('.card-foil');
+
+    /* Animación de lerp continua mientras activo */
+    function tick() {
+      cx += (tx - cx) * SPRING;
+      cy += (ty - cy) * SPRING;
+
+      /* Aplicar rotación 3D — solo transform, GPU composite */
+      card.style.transform =
+        `perspective(1000px) rotateX(${cx.toFixed(3)}deg) rotateY(${cy.toFixed(3)}deg)`;
+
+      /* Sombra dinámica que sigue la inclinación */
+      const shX = (-cy * 2.2).toFixed(1);
+      const shY = ( cx * 2.2 + 8).toFixed(1);
+      card.style.boxShadow =
+        `${shX}px ${shY}px 38px rgba(60,35,90,0.55),` +
+        `0 6px 18px rgba(0,0,0,0.72),` +
+        `inset 0 0 0 1px rgba(180,155,210,0.12)`;
+
+      /* Brillo especular sutil */
+      card.style.setProperty('--shine-x', (mx * 100).toFixed(1) + '%');
+      card.style.setProperty('--shine-y', (my * 100).toFixed(1) + '%');
+
+      /* Foil iridiscente */
+      if (foilR) {
+        const angle = Math.atan2(my - 0.5, mx - 0.5) * (180 / Math.PI);
+        foilR.style.setProperty('--foil-x', (mx * 100).toFixed(1) + '%');
+        foilR.style.setProperty('--foil-y', (my * 100).toFixed(1) + '%');
+        foilR.style.setProperty('--foil-angle', angle.toFixed(1) + 'deg');
+      }
+      if (foilF) {
+        foilF.style.backgroundPosition = (mx * 100).toFixed(1) + '% ' + (my * 100).toFixed(1) + '%';
+      }
+
+      /* Seguir animando si hay movimiento pendiente */
+      const delta = Math.abs(tx - cx) + Math.abs(ty - cy);
+      if (active || delta > 0.008) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        rafId = null;
+      }
+    }
+
+    function startTick() {
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    }
 
     card.addEventListener('mousemove', e => {
-      const r = card.getBoundingClientRect();
-      targetRX = -((e.clientY - r.top)  / r.height - 0.5) * MAX_TILT;
-      targetRY =  ((e.clientX - r.left) / r.width  - 0.5) * MAX_TILT;
+      const r  = card.getBoundingClientRect();
+      mx = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      my = Math.max(0, Math.min(1, (e.clientY - r.top)  / r.height));
+
+      /* Brújula: el card se inclina HACIA el borde más cercano al mouse */
+      /* rotateX: positivo = borde inferior sube (mouse arriba) */
+      /* rotateY: positivo = borde izquierdo sube (mouse derecha) */
+      tx = -(my - 0.5) * MAX_TILT * 2;
+      ty =  (mx - 0.5) * MAX_TILT * 2;
+
+      /* Amplificar efecto en bordes — borde = máximo efecto */
+      const edgeBoostX = Math.abs(my - 0.5) * 1.4;
+      const edgeBoostY = Math.abs(mx - 0.5) * 1.4;
+      tx *= (0.6 + edgeBoostX * 0.4);
+      ty *= (0.6 + edgeBoostY * 0.4);
+
+      /* Clamp */
+      tx = Math.max(-MAX_TILT, Math.min(MAX_TILT, tx));
+      ty = Math.max(-MAX_TILT, Math.min(MAX_TILT, ty));
+
+      startTick();
     });
 
     card.addEventListener('mouseenter', () => {
-      cancelAnimationFrame(animId);
-      function lerp() {
-        currentRX += (targetRX - currentRX) * 0.10;
-        currentRY += (targetRY - currentRY) * 0.10;
-        card.style.transform = `translateY(-6px) scale(1.01) rotateX(${currentRX}deg) rotateY(${currentRY}deg)`;
-        animId = requestAnimationFrame(lerp);
-      }
-      lerp();
+      active = true;
+      startTick();
     });
 
     card.addEventListener('mouseleave', () => {
-      cancelAnimationFrame(animId);
-      targetRX = 0; targetRY = 0;
+      active = false;
+      /* Volver suavemente al reposo */
+      tx = 0; ty = 0;
+      if (foilR) foilR.style.removeProperty('--foil-angle');
       function springBack() {
-        currentRX *= 0.75; currentRY *= 0.75;
-        card.style.transform = `translateY(${-6*Math.max(Math.abs(currentRX),Math.abs(currentRY))/MAX_TILT}px) scale(1) rotateX(${currentRX}deg) rotateY(${currentRY}deg)`;
-        if (Math.abs(currentRX) > 0.05 || Math.abs(currentRY) > 0.05) animId = requestAnimationFrame(springBack);
-        else { card.style.transform = ''; currentRX = 0; currentRY = 0; }
+        cx *= SNAP_BACK;
+        cy *= SNAP_BACK;
+        card.style.transform =
+          `perspective(1000px) rotateX(${cx.toFixed(3)}deg) rotateY(${cy.toFixed(3)}deg)`;
+        const shX = (-cy * 2.2).toFixed(1);
+        const shY = ( cx * 2.2 + 8).toFixed(1);
+        card.style.boxShadow =
+          `${shX}px ${shY}px 38px rgba(60,35,90,0.40),` +
+          `0 6px 18px rgba(0,0,0,0.65)`;
+        if (Math.abs(cx) > 0.02 || Math.abs(cy) > 0.02) {
+          rafId = requestAnimationFrame(springBack);
+        } else {
+          cx = 0; cy = 0;
+          card.style.transform = '';
+          card.style.boxShadow = '';
+          rafId = null;
+        }
       }
-      animId = requestAnimationFrame(springBack);
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(springBack);
     });
-  });
+  }
+
+  /* Aplicar a gallery cards */
+  document.querySelectorAll('.gallery-card').forEach(initCard);
+
+  /* Aplicar a la foto card de sobre mí (misma experiencia, más sutil) */
+  const photoCard = document.querySelector('.sobre-photo-card');
+  if (photoCard) initCard(photoCard);
 })();
 
 
@@ -881,186 +988,6 @@ const GigerTextureEngine = (function() {
 (function cleanInstagramCells() {
   document.querySelectorAll('.ig-img-placeholder span').forEach(el => el.remove());
   document.querySelectorAll('.ig-overlay').forEach(el => el.remove());
-})();
-
-
-/* ══════════════════════════════════════════════════════════
-   GLYPH FIELD — Lenguaje alien bio-mecánico
-   · Canvas fijo de fondo — z-index 0, no interfiere con contenido
-   · Pool de 80 glifos reutilizados (sin GC durante el loop)
-   · Solo globalAlpha + translate/rotate — sin filter ni shadow
-   · MainLoop centralizado — pausa automática en tab oculta
-   · Pulso suave: aparecen, mantienen y desaparecen gradualmente
-   · Densidad muy baja (alpha máx 0.13) — decorativo, no invasivo
-   ══════════════════════════════════════════════════════════ */
-(function initGlyphField() {
-  const canvas = document.getElementById('glyph-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
-  let W = 0, H = 0;
-
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize, { passive: true });
-
-  /* Paleta: dorado tenue + plateado tenue — sin blanco puro */
-  const PAL = [
-    /* dorados */
-    [200, 168,  75],
-    [212, 184, 106],
-    [184, 148,  58],
-    [224, 200, 122],
-    [160, 120,  48],
-    /* plateados */
-    [159, 168, 180],
-    [184, 196, 206],
-    [200, 212, 222],
-    [128, 144, 160],
-    /* cálido tenue */
-    [212, 200, 154],
-    [192, 184, 128],
-  ];
-
-  /* ── FAMILIAS DE GLIFOS alien bio-mecánico ── */
-  /* Cada función recibe (ctx, s) donde s = radio del glifo */
-  const GLYPHS = [
-    /* 0 · Cruz astral de 8 brazos */
-    function(c,s){ c.moveTo(0,-s);c.lineTo(0,s);c.moveTo(-s,0);c.lineTo(s,0);c.moveTo(-s*.71,-s*.71);c.lineTo(s*.71,s*.71);c.moveTo(s*.71,-s*.71);c.lineTo(-s*.71,s*.71); },
-    /* 1 · Triángulo con eje vertebral */
-    function(c,s){ c.moveTo(0,-s);c.lineTo(-s*.87,s*.5);c.lineTo(s*.87,s*.5);c.closePath();c.moveTo(0,-s*.3);c.lineTo(0,s*.5); },
-    /* 2 · Ankh alien */
-    function(c,s){ c.moveTo(0,-s*.1);c.lineTo(0,s);c.moveTo(-s*.55,-s*.15);c.lineTo(s*.55,-s*.15);c.arc(0,-s*.5,s*.38,0,Math.PI*2); },
-    /* 3 · Ojo bio-mecánico */
-    function(c,s){ c.arc(0,0,s*.55,0,Math.PI*2);c.moveTo(-s,-s*.08);c.lineTo(-s*.55,0);c.lineTo(-s,s*.08);c.moveTo(s,-s*.08);c.lineTo(s*.55,0);c.lineTo(s,s*.08); },
-    /* 4 · Diamante nervado */
-    function(c,s){ c.moveTo(0,-s);c.lineTo(s*.65,0);c.lineTo(0,s);c.lineTo(-s*.65,0);c.closePath();c.moveTo(0,-s*.45);c.lineTo(0,s*.45);c.moveTo(-s*.32,0);c.lineTo(s*.32,0); },
-    /* 5 · Vértebra doble */
-    function(c,s){ c.moveTo(-s,s*.28);c.bezierCurveTo(-s*.3,-s*.08,s*.3,-s*.08,s,s*.28);c.moveTo(-s,-s*.28);c.bezierCurveTo(-s*.3,s*.08,s*.3,s*.08,s,-s*.28);c.moveTo(0,-s*.6);c.lineTo(0,s*.6); },
-    /* 6 · Nodo celular con antenas */
-    function(c,s){ c.arc(0,0,s*.45,0,Math.PI*2);c.moveTo(-s,0);c.lineTo(-s*.45,0);c.moveTo(s*.45,0);c.lineTo(s,0);c.moveTo(0,-s*.45);c.lineTo(0,-s);c.moveTo(0,s*.45);c.lineTo(0,s); },
-    /* 7 · Escáner de esquinas (bracket alien) */
-    function(c,s){ var h=s*.55;c.moveTo(-s,-h);c.lineTo(-s*.4,-h);c.moveTo(s*.4,-h);c.lineTo(s,-h);c.lineTo(s,-s*.3);c.moveTo(s,s*.3);c.lineTo(s,h);c.lineTo(s*.4,h);c.moveTo(-s*.4,h);c.lineTo(-s,h);c.lineTo(-s,s*.3);c.moveTo(-s,-s*.3);c.lineTo(-s,-h); },
-    /* 8 · Runa Ψ / tridente */
-    function(c,s){ c.moveTo(-s*.7,0);c.bezierCurveTo(-s*.7,-s,s*.7,-s,s*.7,0);c.moveTo(0,-s*.75);c.lineTo(0,s);c.moveTo(-s*.35,s*.35);c.lineTo(s*.35,s*.35); },
-    /* 9 · Doble chevron alien */
-    function(c,s){ c.moveTo(-s,s*.1);c.lineTo(0,-s*.7);c.lineTo(s,s*.1);c.moveTo(-s*.6,s*.6);c.lineTo(0,-s*.2);c.lineTo(s*.6,s*.6); },
-    /* 10 · Espiral / caracol */
-    function(c,s){ var steps=20,a=0;c.moveTo(s*.05,0);for(var i=1;i<=steps;i++){a=i*(Math.PI*2/steps);var r=s*.05+s*.95*(i/steps);c.lineTo(r*Math.cos(a),r*Math.sin(a));} },
-    /* 11 · Nervio ramificado */
-    function(c,s){ c.moveTo(0,s*.8);c.lineTo(0,0);c.lineTo(-s*.7,-s*.55);c.moveTo(0,0);c.lineTo(s*.7,-s*.55);c.moveTo(0,0);c.lineTo(0,-s*.8);c.moveTo(-s*.7,-s*.55);c.lineTo(-s*.95,-s*.35);c.moveTo(s*.7,-s*.55);c.lineTo(s*.95,-s*.35); },
-    /* 12 · Membrana elíptica con eje */
-    function(c,s){ c.ellipse(0,0,s*.85,s*.5,0,0,Math.PI*2);c.moveTo(-s*.85,0);c.lineTo(s*.85,0);c.moveTo(0,-s*.5);c.lineTo(0,s*.5); },
-    /* 13 · Cruz cuadrada alien */
-    function(c,s){ c.rect(-s*.28,-s,s*.56,s*2);c.rect(-s,-s*.28,s*2,s*.56); },
-    /* 14 · Constelación / patrón estelar */
-    function(c,s){ var pts=[[0,-s],[s*.95,-s*.31],[s*.59,s*.81],[-s*.59,s*.81],[-s*.95,-s*.31]];for(var i=0;i<pts.length;i++){var a=pts[i],b=pts[(i+1)%pts.length];c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.arc(a[0],a[1],s*.08,0,Math.PI*2);} },
-    /* 15 · Tubo orgánico doble */
-    function(c,s){ c.moveTo(-s,s*.22);c.bezierCurveTo(-s*.28,s*.22,s*.28,-s*.22,s,-s*.22);c.moveTo(-s,-s*.22);c.bezierCurveTo(-s*.28,-s*.22,s*.28,s*.22,s,s*.22);c.moveTo(-s,-s*.22);c.lineTo(-s,s*.22);c.moveTo(s,-s*.22);c.lineTo(s,s*.22); },
-  ];
-
-  /* ── POOL DE GLIFOS — datos puros, sin objetos DOM ── */
-  const POOL = 80;
-  const gx    = new Float32Array(POOL);  // posición x
-  const gy    = new Float32Array(POOL);  // posición y
-  const gsz   = new Float32Array(POOL);  // tamaño (radio)
-  const grot  = new Float32Array(POOL);  // rotación actual
-  const grspd = new Float32Array(POOL);  // velocidad rotación
-  const gdx   = new Float32Array(POOL);  // deriva x
-  const gdy   = new Float32Array(POOL);  // deriva y
-  const galph = new Float32Array(POOL);  // alpha actual
-  const gatgt = new Float32Array(POOL);  // alpha objetivo (peak)
-  const gph   = new Float32Array(POOL);  // fase del pulso
-  const gspd  = new Float32Array(POOL);  // velocidad del pulso
-  const glife = new Int32Array(POOL);    // vida actual (frames)
-  const gmaxl = new Int32Array(POOL);    // vida máxima (frames)
-  const ghold = new Int32Array(POOL);    // frame en que pasa a hold
-  const gst   = new Uint8Array(POOL);    // estado: 0=in 1=hold 2=out
-  const gfn   = new Uint8Array(POOL);    // índice de glifo
-  const gcol  = new Uint8Array(POOL);    // índice de color
-
-  function rnd(a,b){ return a + Math.random()*(b-a); }
-  function rndInt(n){ return Math.floor(Math.random()*n); }
-
-  function initSlot(i, stagger) {
-    gx[i]    = rnd(0, W || window.innerWidth);
-    gy[i]    = rnd(0, H || window.innerHeight);
-    gsz[i]   = rnd(3.5, 13);
-    grot[i]  = rnd(0, Math.PI*2);
-    grspd[i] = rnd(-0.0025, 0.0025);
-    gdx[i]   = rnd(-0.10, 0.10);
-    gdy[i]   = rnd(-0.06, 0.06);
-    /* alpha muy bajo — decorativo, no invasivo */
-    gatgt[i] = rnd(0.03, 0.11);
-    galph[i] = stagger ? gatgt[i] * rnd(0, 1) : 0;
-    gph[i]   = rnd(0, Math.PI*2);
-    gspd[i]  = rnd(0.25, 0.80);
-    gmaxl[i] = 220 + rndInt(380);
-    ghold[i] = 35  + rndInt(70);
-    glife[i] = stagger ? rndInt(gmaxl[i]) : 0;
-    gst[i]   = stagger ? 1 : 0;  // stagger = ya en hold
-    gfn[i]   = rndInt(GLYPHS.length);
-    gcol[i]  = rndInt(PAL.length);
-  }
-
-  for (let i = 0; i < POOL; i++) initSlot(i, true);
-
-  /* ── TICK — integrado en MainLoop ── */
-  MainLoop.add(function glyphFieldTick(dt, t) {
-    ctx.clearRect(0, 0, W, H);
-
-    for (let i = 0; i < POOL; i++) {
-      /* actualizar vida y posición */
-      glife[i]++;
-      grot[i] += grspd[i];
-      gx[i]   += gdx[i];
-      gy[i]   += gdy[i];
-
-      /* wrap de bordes */
-      if (gx[i] < -16) gx[i] = W + 16;
-      else if (gx[i] > W + 16) gx[i] = -16;
-      if (gy[i] < -16) gy[i] = H + 16;
-      else if (gy[i] > H + 16) gy[i] = -16;
-
-      /* máquina de estados */
-      if (gst[i] === 0) {
-        /* fade in suave */
-        galph[i] += (gatgt[i] - galph[i]) * 0.038;
-        if (glife[i] >= ghold[i]) gst[i] = 1;
-      } else if (gst[i] === 1) {
-        /* pulso sinusoidal — solo modula amplitude un 35% */
-        galph[i] = gatgt[i] * (0.65 + 0.35 * Math.sin(t * gspd[i] + gph[i]));
-        if (glife[i] >= gmaxl[i] - 55) gst[i] = 2;
-      } else {
-        /* fade out */
-        galph[i] *= 0.960;
-        if (galph[i] < 0.003 || glife[i] >= gmaxl[i]) {
-          initSlot(i, false);  /* renacer en posición aleatoria */
-          continue;
-        }
-      }
-
-      /* skip si invisible */
-      if (galph[i] < 0.003) continue;
-
-      /* dibujar — solo stroke, sin fill, sin sombra */
-      const col = PAL[gcol[i]];
-      ctx.save();
-      ctx.translate(gx[i], gy[i]);
-      ctx.rotate(grot[i]);
-      ctx.globalAlpha = galph[i];
-      ctx.strokeStyle = 'rgb(' + col[0] + ',' + col[1] + ',' + col[2] + ')';
-      ctx.lineWidth   = gsz[i] > 9 ? 0.65 : 0.5;
-      ctx.lineCap     = 'round';
-      ctx.lineJoin    = 'round';
-      ctx.beginPath();
-      GLYPHS[gfn[i]](ctx, gsz[i]);
-      ctx.stroke();
-      ctx.restore();
-    }
-  });
 })();
 
 
@@ -1206,4 +1133,285 @@ if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || lo
     if (e.key === 'ArrowLeft')  navigate(-1);
     if (e.key === 'ArrowRight') navigate(1);
   });
+})();
+/* ═══════════════════════════════════════════════════════════════
+   ANTARES — PATCH JS v1
+   • Círculos separadores: hover con colores de paleta (GPU zero-lag)
+   • Sobre-mi card: sin blur, solo zoom
+   • Cards obra: zoom limpio, misma experiencia que ig
+   • Breathing life: sincronía orgánica entre secciones
+   ═══════════════════════════════════════════════════════════════ */
+'use strict';
+
+/* ── 1. CIRCLE-NODE HOVER — delegado, zero-lag, GPU ─────────────
+   Escuchamos mouseover en el documento y solo activamos en
+   .circle-node. Sin rAF loop, sin setInterval. CSS transitions
+   hacen todo el trabajo en compositor thread.
+   ────────────────────────────────────────────────────────────── */
+(function initCircleNodeHover() {
+  const COLORS = ['hov-1', 'hov-2', 'hov-3', 'hov-4', 'hov-5'];
+  let colorIdx = 0;
+
+  // Assign a palette color index to each circle-node on load
+  document.querySelectorAll('.circle-node').forEach((node, i) => {
+    node.dataset.colorIdx = i % COLORS.length;
+  });
+
+  // Delegated listener — one handler for all SVGs
+  document.addEventListener('mouseover', function(e) {
+    const node = e.target.closest('.circle-node');
+    if (!node) return;
+    // Remove all hov classes and add the assigned one
+    COLORS.forEach(c => node.classList.remove(c));
+    node.classList.add(COLORS[parseInt(node.dataset.colorIdx) || 0]);
+  }, { passive: true });
+
+  document.addEventListener('mouseout', function(e) {
+    const node = e.target.closest('.circle-node');
+    if (!node) return;
+    COLORS.forEach(c => node.classList.remove(c));
+  }, { passive: true });
+})();
+
+
+/* ── 2. SOBRE-MI CARD — eliminar blur, activar zoom ─────────────
+   El CSS patch ya quita el blur. Aquí nos aseguramos que
+   el initCardCompass del main.js no aplique efectos de blur
+   en la photo card de sobre mí.
+   ────────────────────────────────────────────────────────────── */
+(function patchSobreCard() {
+  const sobreCard = document.querySelector('.sobre-photo-card');
+  if (!sobreCard) return;
+
+  // Garantizar que no hay blur en ninguna sub-capa
+  const cleanBlur = () => {
+    sobreCard.style.backdropFilter = 'none';
+    sobreCard.style.filter = 'none';
+    const overlay = sobreCard.querySelector('.card-overlay, .sobre-overlay');
+    if (overlay) {
+      overlay.style.backdropFilter = 'none';
+      overlay.style.filter = 'none';
+      overlay.style.background = 'transparent';
+    }
+  };
+
+  sobreCard.addEventListener('mouseenter', cleanBlur, { passive: true });
+  cleanBlur(); // Apply immediately
+})();
+
+
+/* ── 3. IG-TRIPTYCH-CELL — remover blur en hover ────────────────
+   Limpia cualquier filter/backdrop-filter heredado
+   ────────────────────────────────────────────────────────────── */
+(function patchIgCellHover() {
+  document.querySelectorAll('.ig-triptych-cell').forEach(cell => {
+    cell.addEventListener('mouseenter', () => {
+      cell.style.filter = 'none';
+      cell.style.backdropFilter = 'none';
+      const img = cell.querySelector('.ig-img');
+      if (img) img.style.filter = 'none';
+    }, { passive: true });
+  });
+})();
+
+
+/* ── 4. COMPASS EFFECT para obra cards (gallery-card--obra) ──────
+   El initCardCompass del main.js ya corre en .gallery-card.
+   Aquí extendemos para asegurarnos de que las --obra también
+   tengan el efecto sin interferir con el zoom del CSS.
+   Nota: el compass usa transform directamente, por lo que
+   overridea el zoom CSS — esto es el comportamiento deseado.
+   ────────────────────────────────────────────────────────────── */
+(function patchObraCardCompass() {
+  // El main.js aplica initCardCompass a .gallery-card.
+  // Como las nuevas cards son .gallery-card.gallery-card--obra,
+  // ya están incluidas. Solo aseguramos que foil layers existan.
+  document.querySelectorAll('.gallery-card--obra').forEach(card => {
+    if (!card.querySelector('.card-foil-rainbow')) {
+      const f = document.createElement('div');
+      f.className = 'card-foil-rainbow';
+      card.appendChild(f);
+    }
+    if (!card.querySelector('.card-foil')) {
+      const f2 = document.createElement('div');
+      f2.className = 'card-foil';
+      card.appendChild(f2);
+    }
+  });
+})();
+
+
+/* ── 5. BREATHING SYNC — sincronizar animaciones entre secciones ─
+   Ajusta animation-delay de cada card para crear un pulso
+   orgánico que fluye de arriba a abajo en la página.
+   Solo CSS animation-delay, zero JS en cada frame.
+   ────────────────────────────────────────────────────────────── */
+(function syncBreathing() {
+  const PERIOD = 4000; // ms — duración de un ciclo
+  const START  = performance.now();
+
+  // Asignar delays basados en posición vertical (una sola vez)
+  const allCards = [
+    ...document.querySelectorAll('.gallery-card--obra'),
+    ...document.querySelectorAll('.ig-triptych-cell')
+  ];
+
+  allCards.forEach(card => {
+    const rect = card.getBoundingClientRect();
+    const pct  = (rect.top + window.scrollY) / document.documentElement.scrollHeight;
+    const delay = -(pct * PERIOD);
+    card.style.animationDelay = delay + 'ms';
+  });
+})();
+
+
+/* ── 6. CIRCLE-NODE RADIUS FIX — forzar círculos perfectos ──────
+   Algunos círculos en SVG pueden tener cx/cy/r mal calculados.
+   Normalizamos r=7 en todos los circle-node de separadores.
+   ────────────────────────────────────────────────────────────── */
+(function fixCircleNodes() {
+  document.querySelectorAll('.circle-node').forEach(node => {
+    // Asegurar radio consistente para círculo perfecto
+    const r = parseFloat(node.getAttribute('r'));
+    if (!r || r < 4) node.setAttribute('r', '7');
+    // Asegurar que no haya rx/ry (es ellipse, no circle)
+    if (node.tagName.toLowerCase() === 'ellipse') {
+      const rx = parseFloat(node.getAttribute('rx'));
+      const ry = parseFloat(node.getAttribute('ry'));
+      if (rx && ry && rx !== ry) {
+        // Convertir a círculo usando el promedio
+        const avg = (rx + ry) / 2;
+        node.setAttribute('rx', avg);
+        node.setAttribute('ry', avg);
+      }
+    }
+  });
+})();
+
+
+/* ── 7. SOBRE-PHOTO reveal transition — zoom sin blur ────────────
+   Override de la transición CSS heredada
+   ────────────────────────────────────────────────────────────── */
+(function overrideSobreTransition() {
+  const photoCard = document.querySelector('.sobre-photo-card');
+  if (!photoCard) return;
+
+  // Remover cualquier transición que incluya filter/blur
+  photoCard.style.setProperty('transition',
+    'transform 0.45s cubic-bezier(0.22, 1, 0.36, 1)', 'important');
+
+  const photoImg = photoCard.querySelector('.sobre-photo-img');
+  if (photoImg) {
+    photoImg.style.setProperty('transition',
+      'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)', 'important');
+  }
+})();
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ANTARES — MEJORAS v7 (fusionado)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── CIRCLE-NODE HOVER — delegado, zero-lag ─────────────────────
+   Un solo listener en document para todos los SVG separadores.
+   La clase CSS hace toda la transición — sin rAF por frame.
+   ─────────────────────────────────────────────────────────────── */
+(function initCircleNodeHover() {
+  const COLORS = ['hov-1', 'hov-2', 'hov-3', 'hov-4', 'hov-5'];
+
+  // Asignar color fijo a cada nodo (calculado una sola vez)
+  document.querySelectorAll('.circle-node').forEach((node, i) => {
+    node.dataset.hovColor = COLORS[i % COLORS.length];
+    // Asegurar radio perfecto ≥ 6px
+    const r = parseFloat(node.getAttribute('r') || node.getAttribute('rx') || 0);
+    if (r < 5) {
+      if (node.tagName === 'circle')  node.setAttribute('r', '7');
+      if (node.tagName === 'ellipse') { node.setAttribute('rx','7'); node.setAttribute('ry','7'); }
+    }
+    // Si es ellipse con rx≠ry, igualar
+    if (node.tagName === 'ellipse') {
+      const rx = parseFloat(node.getAttribute('rx'));
+      const ry = parseFloat(node.getAttribute('ry'));
+      if (rx !== ry) { const avg = (rx+ry)/2; node.setAttribute('rx',avg); node.setAttribute('ry',avg); }
+    }
+  });
+
+  document.addEventListener('mouseover', function(e) {
+    const node = e.target.closest && e.target.closest('.circle-node');
+    if (!node) return;
+    COLORS.forEach(c => node.classList.remove(c));
+    node.classList.add(node.dataset.hovColor);
+  }, { passive: true });
+
+  document.addEventListener('mouseout', function(e) {
+    const node = e.target.closest && e.target.closest('.circle-node');
+    if (!node) return;
+    COLORS.forEach(c => node.classList.remove(c));
+  }, { passive: true });
+})();
+
+
+/* ── OBRA CARDS — foil layers + compass (extiende initCardCompass) ─
+   El initCardCompass del bloque anterior ya corre sobre .gallery-card.
+   Aquí garantizamos que las --obra también tengan foil layers.
+   ─────────────────────────────────────────────────────────────── */
+(function ensureObraFoilLayers() {
+  document.querySelectorAll('.gallery-card--obra').forEach(card => {
+    if (!card.querySelector('.card-foil-rainbow')) {
+      const f = document.createElement('div');
+      f.className = 'card-foil-rainbow';
+      card.appendChild(f);
+    }
+    if (!card.querySelector('.card-foil')) {
+      const f2 = document.createElement('div');
+      f2.className = 'card-foil';
+      card.appendChild(f2);
+    }
+  });
+})();
+
+
+/* ── SOBRE-MI CARD — asegurar cero blur en hover ────────────────
+   Override de cualquier filter heredado. El CSS ya lo resuelve,
+   pero forzamos inline para mayor especificidad.
+   ─────────────────────────────────────────────────────────────── */
+(function cleanSobreHover() {
+  const card = document.querySelector('.sobre-photo-card');
+  if (!card) return;
+  const img  = card.querySelector('.sobre-photo-img');
+  const clean = () => {
+    card.style.filter = 'none';
+    card.style.backdropFilter = 'none';
+    if (img) { img.style.filter = 'none'; }
+  };
+  card.addEventListener('mouseenter', clean, { passive: true });
+  clean();
+})();
+
+
+/* ── IG CELLS — asegurar cero blur ──────────────────────────────*/
+(function cleanIgHover() {
+  document.querySelectorAll('.ig-triptych-cell').forEach(cell => {
+    cell.addEventListener('mouseenter', () => {
+      cell.style.filter = 'none';
+      cell.style.backdropFilter = 'none';
+      const img = cell.querySelector('.ig-img');
+      if (img) img.style.filter = 'none';
+    }, { passive: true });
+  });
+})();
+
+
+/* ── BREATHING SYNC — stagger basado en posición vertical ───────
+   Se calcula una sola vez. CSS animation-delay — cero JS runtime.
+   ─────────────────────────────────────────────────────────────── */
+(function syncOrganic() {
+  const PAGE_H = document.documentElement.scrollHeight || 1;
+  const PERIOD = 5000;
+  [...document.querySelectorAll('.gallery-card--obra'), ...document.querySelectorAll('.ig-triptych-cell')]
+    .forEach(card => {
+      const y   = card.getBoundingClientRect().top + window.scrollY;
+      const pct = y / PAGE_H;
+      card.style.animationDelay = (-pct * PERIOD) + 'ms';
+    });
 })();
