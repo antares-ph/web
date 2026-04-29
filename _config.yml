@@ -6,8 +6,8 @@
 # URL base para GitHub Pages
 # Si el repo se llama "antares-ph" el baseurl debe ser "/antares-ph"
 # Si usas dominio propio con CNAME, pon baseurl: "" y url: "https://tudominio.com"
-url: "https://antares-ph.github.io/web"
-baseurl: "/antares-ph/web"   # ← cambia a "/nombre-del-repo" si no es el repo raíz de tu usuario
+url: "https://antares-ph.github.io"
+baseurl: "/web"   # ← cambia a "/nombre-del-repo" si no es el repo raíz de tu usuario
 
 # Excluir archivos que no deben ser públicos
 exclude:
