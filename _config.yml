@@ -1,0 +1,27 @@
+# =====================================================
+#  ANTARES — GitHub Pages Config
+#  Este archivo activa Jekyll en GitHub Pages
+# =====================================================
+
+# URL base para GitHub Pages
+# Si el repo se llama "antares-ph" el baseurl debe ser "/antares-ph"
+# Si usas dominio propio con CNAME, pon baseurl: "" y url: "https://tudominio.com"
+url: "https://antares-ph.github.io"
+baseurl: ""   # ← cambia a "/nombre-del-repo" si no es el repo raíz de tu usuario
+
+# Excluir archivos que no deben ser públicos
+exclude:
+  - _headers
+  - htaccess.txt
+  - antares-worker.js
+  - "*.md"
+  - README.md
+
+# Sin tema Jekyll (sitio estático puro)
+theme: null
+
+# Plugins permitidos en GitHub Pages
+plugins: []
+
+# Encoding
+encoding: utf-8

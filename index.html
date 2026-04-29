@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Antares|Fotografía</title>
+
+  <!-- ── SEGURIDAD ── -->
+  <!-- X-Frame-Options via meta como fallback (el header HTTP es prioritario) -->
+  <meta http-equiv="X-Frame-Options" content="DENY"/>
+  <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block"/>
+  <meta name="referrer" content="no-referrer"/>
+  <!-- http-equiv referrer eliminado: el header HTTP _headers lo gestiona correctamente -->
+  <!-- Sin indexación de imágenes por bots -->
+  <meta name="robots" content="index, follow, noimageindex, noimageai"/>
+  <!-- Bloquear AI image scrapers -->
+  <meta name="CCBot" content="noindex"/>
+  <meta name="GPTBot" content="noindex"/>
+  <!-- Copyright -->
+  <meta name="author" content="Antares · @anth4rez"/>
+  <meta name="copyright" content="© 2026 Antares. Todos los derechos reservados."/>
+  <link rel="stylesheet" href="antares-style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;1,400&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Anime.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+<body>
+
+
+
+
+
+  <!-- CANVAS THREE.JS FONDO -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- OVERLAY DE RUIDO/TEXTURA -->
+  <div class="noise-overlay"></div>
+
+  <!-- NAVEGACIÓN -->
+  <nav id="navbar">
+    <!-- Costillas SVG izquierda -->
+    <div class="nav-ribs nav-ribs--left">
+      <svg viewBox="0 0 60 180" xmlns="http://www.w3.org/2000/svg">
+        <path class="rib" d="M50,10 C30,20 10,30 8,50 C6,70 20,75 50,70"/>
+        <path class="rib" d="M50,35 C28,45 8,55 6,75 C4,95 18,100 50,95"/>
+        <path class="rib" d="M50,60 C26,70 6,80 4,100 C2,120 16,125 50,120"/>
+        <path class="rib" d="M50,85 C24,95 4,105 2,125 C0,145 14,150 50,145"/>
+        <path class="rib" d="M50,110 C22,120 2,130 1,150 C0,165 13,168 50,165"/>
+        <line class="spine" x1="50" y1="5" x2="50" y2="175"/>
+        <path class="tube" d="M50,40 C40,50 35,60 38,80 C41,100 45,110 50,115"/>
+        <circle class="node" cx="38" cy="80" r="3"/>
+        <circle class="node" cx="45" cy="55" r="2"/>
+      </svg>
+    </div>
+
+    <!-- FIX ANTARES: El nombre ahora está en su propio contenedor posicionado
+         de manera absoluta, centrado, con white-space:nowrap para no truncarse -->
+    <div class="nav-brand" aria-label="ANTARES">
+      <span class="brand-letter" data-letter="A">A</span>
+      <span class="brand-letter" data-letter="N">N</span>
+      <span class="brand-letter" data-letter="T">T</span>
+      <span class="brand-letter" data-letter="A">A</span>
+      <span class="brand-letter" data-letter="R">R</span>
+      <span class="brand-letter" data-letter="E">E</span>
+      <span class="brand-letter" data-letter="S">S</span>
+    </div>
+
+    <div class="nav-spacer" aria-hidden="true"></div>
+    <ul class="nav-links">
+      <li><a href="#inicio" class="nav-link">INICIO</a></li>
+      <li><a href="#obra" class="nav-link">OBRA</a></li>
+      <li><a href="#sobre" class="nav-link">SOBRE MÍ</a></li>
+      <li><a href="#instagram" class="nav-link">INSTAGRAM</a></li>
+      <li><a href="#contacto" class="nav-link">CONTACTO</a></li>
+    </ul>
+
+    <!-- Costillas SVG derecha -->
+    <div class="nav-ribs nav-ribs--right">
+      <svg viewBox="0 0 60 180" xmlns="http://www.w3.org/2000/svg">
+        <path class="rib" d="M10,10 C30,20 50,30 52,50 C54,70 40,75 10,70"/>
+        <path class="rib" d="M10,35 C32,45 52,55 54,75 C56,95 42,100 10,95"/>
+        <path class="rib" d="M10,60 C34,70 54,80 56,100 C58,120 44,125 10,120"/>
+        <path class="rib" d="M10,85 C36,95 56,105 58,125 C60,145 46,150 10,145"/>
+        <path class="rib" d="M10,110 C38,120 58,130 59,150 C60,165 47,168 10,165"/>
+        <line class="spine" x1="10" y1="5" x2="10" y2="175"/>
+        <path class="tube" d="M10,40 C20,50 25,60 22,80 C19,100 15,110 10,115"/>
+        <circle class="node" cx="22" cy="80" r="3"/>
+        <circle class="node" cx="15" cy="55" r="2"/>
+      </svg>
+    </div>
+  </nav>
+
+  <!-- SECCIÓN HERO -->
+  <section id="inicio" class="section section--hero">
+
+    <!-- Paredes laterales: CSS puro, sin canvas animado (elimina lag) -->
+
+    <!-- Estructura de costillas lateral izquierda -->
+    <div class="rib-structure rib-structure--left">
+      <svg viewBox="0 0 120 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <!-- Espina vertebral principal -->
+        <line class="spine-main" x1="100" y1="0" x2="100" y2="600"/>
+        <!-- Espina dorsal secundaria (profundidad) -->
+        <path class="spine-deep" d="M92,10 C94,100 96,200 98,300 C100,400 102,500 104,590" stroke-opacity="0.25"/>
+        <!-- Vértebras principales -->
+        <ellipse class="vertebra" cx="100" cy="60" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="100" cy="120" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="100" cy="180" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="100" cy="240" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="100" cy="300" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="100" cy="360" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="100" cy="420" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="100" cy="480" rx="8" ry="12"/>
+        <!-- Vértebras secundarias -->
+        <ellipse class="vertebra vertebra--small" cx="100" cy="90" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="100" cy="150" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="100" cy="210" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="100" cy="270" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="100" cy="330" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="100" cy="390" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="100" cy="450" rx="5" ry="8"/>
+        <!-- Costillas orgánicas principales -->
+        <path class="rib-hero" d="M100,55 C70,58 30,70 10,100 C-5,125 5,145 30,140 C55,135 80,120 100,115"/>
+        <path class="rib-hero" d="M100,115 C65,118 20,132 0,165 C-12,193 0,212 28,206 C56,200 80,182 100,175"/>
+        <path class="rib-hero" d="M100,175 C60,178 12,194 -5,230 C-18,261 -5,280 25,272 C55,264 80,244 100,235"/>
+        <path class="rib-hero" d="M100,235 C55,238 5,256 -10,295 C-22,330 -8,348 22,338 C52,328 78,305 100,295"/>
+        <path class="rib-hero" d="M100,295 C50,298 -2,318 -15,360 C-26,398 -10,416 20,404 C50,392 76,366 100,355"/>
+        <path class="rib-hero" d="M100,355 C45,358 -8,380 -20,425 C-30,466 -12,482 18,468 C48,454 74,426 100,415"/>
+        <path class="rib-hero" d="M100,415 C40,418 -14,442 -25,490 C-34,534 -14,548 16,532 C46,516 72,486 100,475"/>
+        <!-- Costillas secundarias (capa profunda) -->
+        <path class="rib-hero rib-hero--deep" d="M100,75 C75,78 40,88 22,115 C8,138 15,150 35,145 C55,140 75,128 100,122"/>
+        <path class="rib-hero rib-hero--deep" d="M100,135 C72,138 35,150 15,180 C2,205 10,218 32,212 C54,206 75,192 100,185"/>
+        <path class="rib-hero rib-hero--deep" d="M100,195 C68,198 28,212 8,245 C-5,268 2,282 28,276 C54,270 75,254 100,245"/>
+        <path class="rib-hero rib-hero--deep" d="M100,255 C62,258 18,274 2,308 C-12,335 -5,350 24,342 C53,334 75,316 100,305"/>
+        <path class="rib-hero rib-hero--deep" d="M100,315 C58,318 10,336 -8,372 C-22,402 -15,418 22,408 C52,400 75,380 100,365"/>
+        <path class="rib-hero rib-hero--deep" d="M100,375 C52,378 2,398 -15,435 C-28,468 -20,485 20,472 C50,462 75,440 100,425"/>
+        <!-- Tejido/membrana entre costillas -->
+        <path class="membrane" d="M100,55 C70,58 30,70 10,100 C-5,125 5,145 30,140 C55,135 80,120 100,115 C80,120 55,135 30,140 C5,145 -5,125 10,100 C30,70 70,58 100,55"/>
+        <!-- Tubos orgánicos principales -->
+        <path class="tube-hero" d="M100,80 C85,90 75,110 78,140 C81,170 90,185 100,190"/>
+        <path class="tube-hero" d="M100,200 C82,212 70,235 74,268 C78,301 88,318 100,322"/>
+        <!-- Tubos secundarios -->
+        <path class="tube-hero tube-hero--thin" d="M100,140 C88,148 80,162 82,180 C84,198 90,210 100,215"/>
+        <path class="tube-hero tube-hero--thin" d="M100,260 C90,268 84,282 86,300 C88,318 94,328 100,332"/>
+        <!-- Nódulos/glándulas principales -->
+        <circle class="gland" cx="78" cy="140" r="5"/>
+        <circle class="gland" cx="74" cy="268" r="5"/>
+        <circle class="gland" cx="30" cy="140" r="3"/>
+        <circle class="gland" cx="28" cy="206" r="3"/>
+        <!-- Nódulos secundarios -->
+        <circle class="gland gland--small" cx="82" cy="180" r="2.5"/>
+        <circle class="gland gland--small" cx="86" cy="300" r="2.5"/>
+        <circle class="gland gland--small" cx="45" cy="165" r="2"/>
+        <circle class="gland gland--small" cx="38" cy="230" r="2"/>
+        <circle class="gland gland--small" cx="22" cy="295" r="2"/>
+      </svg>
+    </div>
+
+    <!-- Canvas para efecto de tejido -->
+    <canvas id="hero-canvas" class="hero-canvas"></canvas>
+
+    <div class="hero-content">
+      <h1 class="hero-title" aria-label="ANTARES">
+        <span class="hero-title__line" id="heroLine1">
+          <!-- BIO-MECHANIC SVG TITLE — HR GIGER STYLE -->
+          <svg class="giger-title-svg" viewBox="0 0 920 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="metalGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stop-color="#c8bca0" stop-opacity="0.9"/>
+                <stop offset="28%"  stop-color="#e8dcc4" stop-opacity="1"/>
+                <stop offset="50%"  stop-color="#f0e6d4" stop-opacity="1"/>
+                <stop offset="72%"  stop-color="#c0b49a" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#807060" stop-opacity="0.8"/>
+              </linearGradient>
+              <linearGradient id="nerveGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stop-color="#a070c8" stop-opacity="0.0"/>
+                <stop offset="40%"  stop-color="#7e52a0" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#4a2870" stop-opacity="0.9"/>
+              </linearGradient>
+              <filter id="gigerGlow" x="-10%" y="-30%" width="120%" height="160%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="3"  result="b1"/>
+                <feGaussianBlur in="SourceGraphic" stdDeviation="8"  result="b2"/>
+                <feGaussianBlur in="SourceGraphic" stdDeviation="18" result="b3"/>
+                <feMerge>
+                  <feMergeNode in="b3"/>
+                  <feMergeNode in="b2"/>
+                  <feMergeNode in="b1"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="ribGlow" x="-20%" y="-50%" width="140%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="engrave">
+                <feTurbulence type="fractalNoise" baseFrequency="0.9 0.4" numOctaves="3" seed="5" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
+              </filter>
+              <clipPath id="titleClip">
+                <text x="460" y="125" text-anchor="middle"
+                  font-family="'Syncopate', sans-serif"
+                  font-weight="700"
+                  font-size="136"
+                  letter-spacing="14">ANTARES</text>
+              </clipPath>
+            </defs>
+
+            <!-- SHADOW -->
+            <text x="463" y="129" text-anchor="middle"
+              font-family="'Syncopate', sans-serif"
+              font-weight="700" font-size="136" letter-spacing="14"
+              fill="#0a0510" opacity="0.9">ANTARES</text>
+
+            <!-- BODY -->
+            <text x="460" y="125" text-anchor="middle"
+              font-family="'Syncopate', sans-serif"
+              font-weight="700" font-size="136" letter-spacing="14"
+              fill="url(#metalGrad)"
+              filter="url(#engrave)">ANTARES</text>
+
+            <!-- INTERIOR ORGANIC SYSTEM (clipped) -->
+            <g clip-path="url(#titleClip)" opacity="0.88">
+              <rect x="0" y="0" width="920" height="160" fill="#06040e"/>
+
+              <!-- Horizontal ribs -->
+              <g fill="none" stroke-linecap="round" filter="url(#ribGlow)">
+                <path stroke="rgba(206,190,160,0.45)" stroke-width="1.0" d="M0,22  C150,15 300,29 460,20 C620,11 770,25 920,20"/>
+                <path stroke="rgba(206,190,160,0.55)" stroke-width="1.4" d="M0,40  C120,31 270,47 460,36 C650,25 800,42 920,36"/>
+                <path stroke="rgba(206,190,160,0.65)" stroke-width="1.9" d="M0,59  C100,48 240,65 460,54 C680,43 830,60 920,54"/>
+                <path stroke="rgba(206,190,160,0.70)" stroke-width="2.2" d="M0,80  C80,67  210,85 460,73 C710,61 860,79 920,73"/>
+                <path stroke="rgba(206,190,160,0.65)" stroke-width="1.9" d="M0,101 C100,90 240,107 460,96 C680,85 830,102 920,96"/>
+                <path stroke="rgba(206,190,160,0.55)" stroke-width="1.4" d="M0,120 C120,109 270,126 460,115 C650,104 800,121 920,115"/>
+                <path stroke="rgba(206,190,160,0.45)" stroke-width="1.0" d="M0,138 C150,127 300,141 460,134 C620,127 770,139 920,134"/>
+              </g>
+
+              <!-- Purple nerve ribs -->
+              <g fill="none" stroke="rgba(140,90,180,0.28)" stroke-linecap="round">
+                <path stroke-width="0.8" d="M0,50  C150,41 300,55 460,46 C620,37 770,51 920,46"/>
+                <path stroke-width="0.8" d="M0,110 C150,101 300,115 460,106 C620,97 770,111 920,106"/>
+              </g>
+
+              <!-- Vertical spines -->
+              <g fill="none" stroke="rgba(186,174,148,0.62)" stroke-linecap="round">
+                <line stroke-width="1.6" x1="130" y1="0" x2="130" y2="160"/>
+                <line stroke-width="1.2" x1="260" y1="0" x2="260" y2="160"/>
+                <line stroke-width="1.6" x1="388" y1="0" x2="388" y2="160"/>
+                <line stroke-width="1.2" x1="532" y1="0" x2="532" y2="160"/>
+                <line stroke-width="1.6" x1="660" y1="0" x2="660" y2="160"/>
+                <line stroke-width="1.2" x1="790" y1="0" x2="790" y2="160"/>
+              </g>
+
+              <!-- Organic tubes -->
+              <g fill="none" stroke="rgba(110,88,138,0.50)" stroke-width="1.4" stroke-linecap="round">
+                <path d="M130,0  C126,30 132,55 128,80  C124,105 130,130 130,160"/>
+                <path d="M388,0  C384,28 390,52 385,78  C380,104 388,128 388,160"/>
+                <path d="M660,0  C656,30 662,54 657,80  C652,106 660,130 660,160"/>
+              </g>
+              <g fill="none" stroke="rgba(95,75,120,0.30)" stroke-width="0.9" stroke-linecap="round">
+                <path d="M260,0  C257,35 263,65 259,95  C255,125 260,145 260,160"/>
+                <path d="M532,0  C529,38 535,68 531,98  C527,128 532,148 532,160"/>
+                <path d="M790,0  C787,32 793,62 789,92  C785,122 790,142 790,160"/>
+              </g>
+
+              <!-- Vertebrae -->
+              <g fill="#0a0514" stroke="rgba(180,150,210,0.60)" stroke-width="1.3">
+                <ellipse cx="130" cy="40"  rx="5" ry="7.5"/>
+                <ellipse cx="130" cy="80"  rx="5" ry="7.5"/>
+                <ellipse cx="130" cy="120" rx="5" ry="7.5"/>
+                <ellipse cx="388" cy="38"  rx="5" ry="7.5"/>
+                <ellipse cx="388" cy="78"  rx="5" ry="7.5"/>
+                <ellipse cx="388" cy="118" rx="5" ry="7.5"/>
+                <ellipse cx="660" cy="40"  rx="5" ry="7.5"/>
+                <ellipse cx="660" cy="80"  rx="5" ry="7.5"/>
+                <ellipse cx="660" cy="120" rx="5" ry="7.5"/>
+              </g>
+
+              <!-- Glands -->
+              <g fill="#06030e" stroke="rgba(160,120,200,0.55)" stroke-width="1.1">
+                <circle cx="260" cy="59"  r="4"/>
+                <circle cx="260" cy="101" r="4"/>
+                <circle cx="532" cy="56"  r="4"/>
+                <circle cx="532" cy="101" r="4"/>
+                <circle cx="790" cy="61"  r="4"/>
+                <circle cx="790" cy="103" r="4"/>
+              </g>
+
+              <!-- Purple depth overlay -->
+              <rect x="0" y="0" width="920" height="160" fill="url(#nerveGrad)" opacity="0.32"/>
+            </g>
+
+            <!-- OUTER STROKE with glow -->
+            <text x="460" y="125" text-anchor="middle"
+              font-family="'Syncopate', sans-serif"
+              font-weight="700" font-size="136" letter-spacing="14"
+              fill="none"
+              stroke="rgba(230,218,192,0.80)" stroke-width="0.7"
+              filter="url(#gigerGlow)">ANTARES</text>
+
+            <!-- External rib details above/below letters -->
+            <g opacity="0.52" fill="none" stroke-linecap="round">
+              <path stroke="rgba(206,194,164,0.50)" stroke-width="1.2" d="M 62,8  C 82,0  112,12 130,6  C 148,0  170,16 182,8"/>
+              <path stroke="rgba(206,194,164,0.45)" stroke-width="0.9" d="M 314,6  C 334,-2 362,10 388,4  C 414,-2 436,14 450,6"/>
+              <path stroke="rgba(206,194,164,0.50)" stroke-width="1.2" d="M 575,8  C 598,0  630,12 660,6  C 690,0  710,16 728,8"/>
+              <path stroke="rgba(206,194,164,0.45)" stroke-width="0.9" d="M 830,6  C 850,-2 876,10 900,4"/>
+              <path stroke="rgba(186,174,148,0.40)" stroke-width="1.1" d="M 58,154 C 82,162 110,148 130,156 C 150,164 172,148 186,156"/>
+              <path stroke="rgba(186,174,148,0.38)" stroke-width="0.9" d="M 312,152 C 336,160 364,146 388,154 C 412,162 434,146 452,154"/>
+              <path stroke="rgba(186,174,148,0.40)" stroke-width="1.1" d="M 572,154 C 598,162 630,148 660,156 C 690,164 712,148 730,156"/>
+            </g>
+
+            <!-- Glands on spine intersections exterior -->
+            <g fill="#08030f" stroke="rgba(170,130,210,0.65)" stroke-width="1.1">
+              <circle cx="130" cy="1"   r="3.5"/>
+              <circle cx="388" cy="1"   r="3.5"/>
+              <circle cx="660" cy="1"   r="3.5"/>
+              <circle cx="130" cy="159" r="3.5"/>
+              <circle cx="388" cy="159" r="3.5"/>
+              <circle cx="660" cy="159" r="3.5"/>
+            </g>
+          </svg>
+        </span>
+      </h1>
+      <p class="hero-subtitle">Donde la carne se convierte en luz<br>y la sombra en estructura</p>
+      <div class="hero-cta">
+        <a href="#obra" class="btn-organic">
+          <span class="btn-organic__text">VER OBRA</span>
+          <span class="btn-organic__glow"></span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Estructura de costillas lateral derecha -->
+    <div class="rib-structure rib-structure--right">
+      <svg viewBox="0 0 120 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <!-- Espina vertebral principal -->
+        <line class="spine-main" x1="20" y1="0" x2="20" y2="600"/>
+        <!-- Espina dorsal secundaria -->
+        <path class="spine-deep" d="M28,10 C26,100 24,200 22,300 C20,400 18,500 16,590" stroke-opacity="0.25"/>
+        <!-- Vértebras principales -->
+        <ellipse class="vertebra" cx="20" cy="60" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="20" cy="120" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="20" cy="180" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="20" cy="240" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="20" cy="300" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="20" cy="360" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="20" cy="420" rx="8" ry="12"/>
+        <ellipse class="vertebra" cx="20" cy="480" rx="8" ry="12"/>
+        <!-- Vértebras secundarias -->
+        <ellipse class="vertebra vertebra--small" cx="20" cy="90" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="20" cy="150" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="20" cy="210" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="20" cy="270" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="20" cy="330" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="20" cy="390" rx="5" ry="8"/>
+        <ellipse class="vertebra vertebra--small" cx="20" cy="450" rx="5" ry="8"/>
+        <!-- Costillas orgánicas principales -->
+        <path class="rib-hero" d="M20,55 C50,58 90,70 110,100 C125,125 115,145 90,140 C65,135 40,120 20,115"/>
+        <path class="rib-hero" d="M20,115 C55,118 100,132 120,165 C132,193 120,212 92,206 C64,200 40,182 20,175"/>
+        <path class="rib-hero" d="M20,175 C60,178 108,194 125,230 C138,261 125,280 95,272 C65,264 40,244 20,235"/>
+        <path class="rib-hero" d="M20,235 C65,238 115,256 130,295 C142,330 128,348 98,338 C68,328 42,305 20,295"/>
+        <path class="rib-hero" d="M20,295 C70,298 122,318 135,360 C146,398 130,416 100,404 C70,392 44,366 20,355"/>
+        <path class="rib-hero" d="M20,355 C75,358 128,380 140,425 C150,466 132,482 102,468 C72,454 46,426 20,415"/>
+        <path class="rib-hero" d="M20,415 C80,418 134,442 145,490 C154,534 134,548 104,532 C74,516 48,486 20,475"/>
+        <!-- Costillas secundarias -->
+        <path class="rib-hero rib-hero--deep" d="M20,75 C45,78 80,88 98,115 C112,138 105,150 85,145 C65,140 45,128 20,122"/>
+        <path class="rib-hero rib-hero--deep" d="M20,135 C48,138 85,150 105,180 C118,205 110,218 88,212 C66,206 45,192 20,185"/>
+        <path class="rib-hero rib-hero--deep" d="M20,195 C52,198 92,212 112,245 C125,268 118,282 92,276 C66,270 45,254 20,245"/>
+        <path class="rib-hero rib-hero--deep" d="M20,255 C58,258 102,274 118,308 C132,335 125,350 96,342 C67,334 45,316 20,305"/>
+        <path class="rib-hero rib-hero--deep" d="M20,315 C62,318 110,336 128,372 C142,402 135,418 98,408 C68,400 45,380 20,365"/>
+        <path class="rib-hero rib-hero--deep" d="M20,375 C68,378 118,398 135,435 C148,468 140,485 100,472 C70,462 45,440 20,425"/>
+        <!-- Membrana -->
+        <path class="membrane" d="M20,55 C50,58 90,70 110,100 C125,125 115,145 90,140 C65,135 40,120 20,115 C40,120 65,135 90,140 C115,145 125,125 110,100 C90,70 50,58 20,55"/>
+        <!-- Tubos orgánicos principales -->
+        <path class="tube-hero" d="M20,80 C35,90 45,110 42,140 C39,170 30,185 20,190"/>
+        <path class="tube-hero" d="M20,200 C38,212 50,235 46,268 C42,301 32,318 20,322"/>
+        <!-- Tubos secundarios -->
+        <path class="tube-hero tube-hero--thin" d="M20,140 C32,148 40,162 38,180 C36,198 30,210 20,215"/>
+        <path class="tube-hero tube-hero--thin" d="M20,260 C30,268 36,282 34,300 C32,318 26,328 20,332"/>
+        <!-- Nódulos/glándulas principales -->
+        <circle class="gland" cx="42" cy="140" r="5"/>
+        <circle class="gland" cx="46" cy="268" r="5"/>
+        <circle class="gland" cx="90" cy="140" r="3"/>
+        <circle class="gland" cx="92" cy="206" r="3"/>
+        <!-- Nódulos secundarios -->
+        <circle class="gland gland--small" cx="38" cy="180" r="2.5"/>
+        <circle class="gland gland--small" cx="34" cy="300" r="2.5"/>
+        <circle class="gland gland--small" cx="75" cy="165" r="2"/>
+        <circle class="gland gland--small" cx="82" cy="230" r="2"/>
+        <circle class="gland gland--small" cx="98" cy="295" r="2"/>
+      </svg>
+    </div>
+
+    <!-- Costillas horizontales en la parte inferior del hero -->
+    <div class="rib-bottom">
+      <svg viewBox="0 0 1400 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <!-- Costillas principales -->
+        <path class="rib-h" d="M0,30 C200,10 400,50 700,20 C1000,-10 1200,40 1400,25"/>
+        <path class="rib-h" d="M0,50 C180,28 380,68 700,38 C1020,8 1220,58 1400,45"/>
+        <path class="rib-h" d="M0,70 C160,46 360,86 700,56 C1040,26 1240,76 1400,65"/>
+        <path class="rib-h" d="M0,90 C140,64 340,104 700,74 C1060,44 1260,94 1400,85"/>
+        <path class="rib-h" d="M0,108 C120,82 320,118 700,90 C1080,62 1280,108 1400,100"/>
+        <!-- Costillas secundarias (capa profunda) -->
+        <path class="rib-h rib-h--deep" d="M0,40 C180,22 390,58 700,30 C1010,2 1210,48 1400,35"/>
+        <path class="rib-h rib-h--deep" d="M0,60 C170,40 375,78 700,48 C1030,18 1230,68 1400,55"/>
+        <path class="rib-h rib-h--deep" d="M0,80 C150,56 355,96 700,66 C1050,36 1250,86 1400,75"/>
+        <!-- Tubos verticales principales -->
+        <line class="tube-v" x1="200" y1="20" x2="200" y2="110"/>
+        <line class="tube-v" x1="500" y1="10" x2="500" y2="100"/>
+        <line class="tube-v" x1="700" y1="5" x2="700" y2="95"/>
+        <line class="tube-v" x1="900" y1="10" x2="900" y2="100"/>
+        <line class="tube-v" x1="1200" y1="20" x2="1200" y2="110"/>
+        <!-- Tubos secundarios -->
+        <line class="tube-v tube-v--thin" x1="350" y1="25" x2="350" y2="105"/>
+        <line class="tube-v tube-v--thin" x1="600" y1="8" x2="600" y2="92"/>
+        <line class="tube-v tube-v--thin" x1="800" y1="12" x2="800" y2="98"/>
+        <line class="tube-v tube-v--thin" x1="1050" y1="18" x2="1050" y2="108"/>
+        <!-- Nódulos principales -->
+        <circle class="gland" cx="200" cy="65" r="5"/>
+        <circle class="gland" cx="500" cy="55" r="5"/>
+        <circle class="gland" cx="700" cy="50" r="5"/>
+        <circle class="gland" cx="900" cy="55" r="5"/>
+        <circle class="gland" cx="1200" cy="65" r="5"/>
+        <!-- Nódulos secundarios -->
+        <circle class="gland gland--small" cx="350" cy="65" r="3"/>
+        <circle class="gland gland--small" cx="600" cy="50" r="3"/>
+        <circle class="gland gland--small" cx="800" cy="55" r="3"/>
+        <circle class="gland gland--small" cx="1050" cy="63" r="3"/>
+        <!-- Conexiones transversales -->
+        <path class="rib-h rib-h--connector" d="M150,45 C180,50 220,48 250,52"/>
+        <path class="rib-h rib-h--connector" d="M450,35 C480,40 520,38 550,42"/>
+        <path class="rib-h rib-h--connector" d="M650,30 C680,35 720,33 750,37"/>
+        <path class="rib-h rib-h--connector" d="M850,35 C880,40 920,38 950,42"/>
+        <path class="rib-h rib-h--connector" d="M1150,45 C1180,50 1220,48 1250,52"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- SEPARADOR BIO-ORGÁNICO GIGER — Canvas con textura + SVG de costillas -->
+  <div class="giger-divider" id="div1">
+    <canvas id="giger-div-canvas-1" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.55;"></canvas>
+    <svg class="giger-divider-svg" viewBox="0 0 1400 180" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <!-- Arcos costales que atraviesan el separador -->
+      <path class="divider-rib" d="M0,90 C100,40 200,120 350,70 C500,20 600,100 700,90 C800,80 900,120 1050,70 C1200,20 1300,95 1400,90"/>
+      <path class="divider-rib delay1" d="M0,108 C100,55 200,138 350,88 C500,38 600,118 700,108 C800,98 900,138 1050,88 C1200,38 1300,113 1400,108"/>
+      <path class="divider-rib delay2" d="M0,125 C100,70 200,155 350,105 C500,55 600,135 700,125 C800,115 900,155 1050,105 C1200,55 1300,130 1400,125"/>
+      <!-- Espina dorsal horizontal -->
+      <line stroke="rgba(140,128,106,0.5)" stroke-width="1.5" x1="0" y1="90" x2="1400" y2="90"/>
+      <!-- Vértebras a lo largo -->
+      <ellipse class="vertebra" cx="175" cy="90" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="350" cy="70" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="525" cy="90" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="700" cy="90" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="875" cy="90" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="1050" cy="70" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="1225" cy="90" rx="6" ry="9"/>
+      <!-- Glándulas -->
+      <circle class="div-node" cx="350" cy="70" r="7"/>
+      <circle class="div-node" cx="700" cy="90" r="7"/>
+      <circle class="div-node" cx="1050" cy="70" r="7"/>
+      <!-- Tubos que cuelgan -->
+      <path class="tube-hero" d="M350,70 C345,105 342,135 340,155"/>
+      <path class="tube-hero" d="M700,90 C695,118 692,145 690,162"/>
+      <path class="tube-hero" d="M1050,70 C1045,105 1042,135 1040,155"/>
+      <circle class="gland" cx="340" cy="155" r="4"/>
+      <circle class="gland" cx="690" cy="162" r="4"/>
+      <circle class="gland" cx="1040" cy="155" r="4"/>
+    </svg>
+  </div>
+
+  <!-- SECCIÓN OBRA / GALERÍA -->
+  <section id="obra" class="section section--obra">
+    <div class="section-rib-left">
+      <svg viewBox="0 0 80 800" xmlns="http://www.w3.org/2000/svg">
+        <line class="spine-main" x1="60" y1="0" x2="60" y2="800"/>
+        <ellipse class="vertebra" cx="60" cy="80" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="60" cy="180" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="60" cy="280" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="60" cy="380" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="60" cy="480" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="60" cy="580" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="60" cy="680" rx="7" ry="10"/>
+        <path class="rib-side" d="M60,75 C40,80 10,95 2,115 C-4,130 4,138 20,133 C36,128 52,118 60,112"/>
+        <path class="rib-side" d="M60,175 C38,180 5,197 -3,220 C-9,238 0,246 18,240 C36,234 52,220 60,212"/>
+        <path class="rib-side" d="M60,275 C36,280 0,299 -8,325 C-14,346 -4,354 16,347 C36,340 52,322 60,312"/>
+        <path class="rib-side" d="M60,375 C34,380 -5,401 -13,430 C-18,454 -8,462 14,454 C36,446 52,424 60,412"/>
+        <path class="rib-side" d="M60,475 C32,480 -10,503 -18,535 C-22,562 -12,570 12,561 C36,552 52,526 60,512"/>
+        <path class="rib-side" d="M60,575 C30,580 -15,605 -23,640 C-26,670 -16,678 10,668 C36,658 52,628 60,612"/>
+        <circle class="gland" cx="2" cy="115" r="4"/>
+        <circle class="gland" cx="-3" cy="220" r="4"/>
+        <circle class="gland" cx="-8" cy="325" r="4"/>
+      </svg>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <h2 class="section-title" data-text="OBRA">OBRA</h2>
+        <div class="section-title-under"></div>
+      </div>
+      <p class="section-subtitle">Fragmentos del mundo interior</p>
+    </div>
+
+    <!-- Grid de galería -->
+    <div class="gallery-grid" id="galleryGrid" style="perspective:900px;">
+      <a class="gallery-card" href="images/obra/obra-001.jpg" data-index="0" data-lightbox="obra" aria-label="Sin Título I">
+        <div class="card-giger-frame" aria-hidden="true"><svg viewBox="0 0 300 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="frame-spine" x1="0" y1="0" x2="0" y2="26"/><line class="frame-spine" x1="0" y1="52" x2="0" y2="90"/><line class="frame-spine" x1="0" y1="116" x2="0" y2="154"/><line class="frame-spine" x1="0" y1="180" x2="0" y2="218"/><line class="frame-spine" x1="0" y1="244" x2="0" y2="282"/><line class="frame-spine" x1="0" y1="308" x2="0" y2="346"/><line class="frame-spine" x1="0" y1="354" x2="0" y2="380"/><line class="frame-spine" x1="300" y1="0" x2="300" y2="26"/><line class="frame-spine" x1="300" y1="52" x2="300" y2="90"/><line class="frame-spine" x1="300" y1="116" x2="300" y2="154"/><line class="frame-spine" x1="300" y1="180" x2="300" y2="218"/><line class="frame-spine" x1="300" y1="244" x2="300" y2="282"/><line class="frame-spine" x1="300" y1="308" x2="300" y2="346"/><line class="frame-spine" x1="300" y1="354" x2="300" y2="380"/><line class="frame-spine" x1="0" y1="0" x2="34" y2="0"/><line class="frame-spine" x1="64" y1="0" x2="120" y2="0"/><line class="frame-spine" x1="148" y1="0" x2="200" y2="0"/><line class="frame-spine" x1="228" y1="0" x2="272" y2="0"/><line class="frame-spine" x1="290" y1="0" x2="300" y2="0"/><line class="frame-spine" x1="0" y1="380" x2="34" y2="380"/><line class="frame-spine" x1="64" y1="380" x2="120" y2="380"/><line class="frame-spine" x1="148" y1="380" x2="200" y2="380"/><line class="frame-spine" x1="228" y1="380" x2="272" y2="380"/><line class="frame-spine" x1="290" y1="380" x2="300" y2="380"/><path class="frame-peak" d="M0,26 L-5,32 L-8,39 L-5,46 L0,52 M-5,32 L-3,39 L-5,46 M-8,39 L-12,39"/><path class="frame-peak-shadow" d="M0,29 L-2,32 L-4,39 L-2,46 L0,49"/><path class="frame-peak" d="M0,90 L-5,97 L-8,103 L-5,109 L0,116 M-5,97 L-3,103 L-5,109 M-8,103 L-12,103"/><path class="frame-peak-shadow" d="M0,93 L-2,97 L-4,103 L-2,109 L0,113"/><path class="frame-peak" d="M0,154 L-4,160 L-6,167 L-4,174 L0,180 M-6,167 L-9,167"/><path class="frame-peak-shadow" d="M0,157 L-2,161 L-3,167 L-2,173 L0,177"/><path class="frame-peak" d="M0,218 L-5,225 L-8,231 L-5,237 L0,244 M-5,225 L-3,231 L-5,237 M-8,231 L-12,231"/><path class="frame-peak-shadow" d="M0,221 L-2,225 L-4,231 L-2,237 L0,241"/><path class="frame-peak" d="M0,282 L-4,288 L-6,295 L-4,302 L0,308 M-6,295 L-9,295"/><path class="frame-peak-shadow" d="M0,285 L-2,289 L-3,295 L-2,301 L0,305"/><path class="frame-peak" d="M0,346 L-5,349 L-8,350 L-5,351 L0,354 M-8,350 L-11,350"/><path class="frame-peak-shadow" d="M0,347 L-2,349 L-4,350 L-2,351 L0,353"/><path class="frame-peak" d="M300,26 L305,32 L308,39 L305,46 L300,52 M305,32 L303,39 L305,46 M308,39 L312,39"/><path class="frame-peak-shadow" d="M300,29 L302,32 L304,39 L302,46 L300,49"/><path class="frame-peak" d="M300,90 L305,97 L308,103 L305,109 L300,116 M305,97 L303,103 L305,109 M308,103 L312,103"/><path class="frame-peak-shadow" d="M300,93 L302,97 L304,103 L302,109 L300,113"/><path class="frame-peak" d="M300,154 L304,160 L306,167 L304,174 L300,180 M306,167 L309,167"/><path class="frame-peak-shadow" d="M300,157 L302,161 L303,167 L302,173 L300,177"/><path class="frame-peak" d="M300,218 L305,225 L308,231 L305,237 L300,244 M305,225 L303,231 L305,237 M308,231 L312,231"/><path class="frame-peak-shadow" d="M300,221 L302,225 L304,231 L302,237 L300,241"/><path class="frame-peak" d="M300,282 L304,288 L306,295 L304,302 L300,308 M306,295 L309,295"/><path class="frame-peak-shadow" d="M300,285 L302,289 L303,295 L302,301 L300,305"/><path class="frame-peak" d="M300,346 L305,349 L308,350 L305,351 L300,354 M308,350 L311,350"/><path class="frame-peak-shadow" d="M300,347 L302,349 L304,350 L302,351 L300,353"/><path class="frame-peak" d="M34,0 L40,-5 L49,-8 L58,-5 L64,0 M40,-5 L49,-3 L58,-5 M49,-8 L49,-12"/><path class="frame-peak-shadow" d="M36,0 L41,-4 L49,-6 L57,-4 L62,0"/><path class="frame-peak" d="M120,0 L126,-5 L134,-7 L142,-5 L148,0 M134,-7 L134,-11"/><path class="frame-peak-shadow" d="M122,0 L127,-4 L134,-5 L141,-4 L146,0"/><path class="frame-peak" d="M200,0 L207,-5 L214,-8 L221,-5 L228,0 M207,-5 L214,-3 L221,-5 M214,-8 L214,-12"/><path class="frame-peak-shadow" d="M202,0 L208,-4 L214,-6 L220,-4 L226,0"/><path class="frame-peak" d="M272,0 L276,-4 L281,-6 L286,-4 L290,0 M281,-6 L281,-9"/><path class="frame-peak-shadow" d="M274,0 L277,-3 L281,-4 L285,-3 L288,0"/><path class="frame-peak" d="M34,380 L40,385 L49,388 L58,385 L64,380 M40,385 L49,383 L58,385 M49,388 L49,392"/><path class="frame-peak-shadow" d="M36,380 L41,384 L49,386 L57,384 L62,380"/><path class="frame-peak" d="M120,380 L126,385 L134,387 L142,385 L148,380 M134,387 L134,391"/><path class="frame-peak-shadow" d="M122,380 L127,384 L134,385 L141,384 L146,380"/><path class="frame-peak" d="M200,380 L207,385 L214,388 L221,385 L228,380 M207,385 L214,383 L221,385 M214,388 L214,392"/><path class="frame-peak-shadow" d="M202,380 L208,384 L214,386 L220,384 L226,380"/><path class="frame-peak" d="M272,380 L276,384 L281,386 L286,384 L290,380 M281,386 L281,389"/><path class="frame-peak-shadow" d="M274,380 L277,383 L281,384 L285,383 L288,380"/><path class="frame-peak" d="M0,16 L0,0 L16,0"/><path class="frame-peak" d="M0,8 L5,5 L8,0"/><path class="frame-mark" d="M3,12 L3,3 L12,3"/><path class="frame-glyph" d="M8,0 L11,4 L8,8"/><circle class="frame-dot" cx="5.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M284,0 L300,0 L300,16"/><path class="frame-peak" d="M292,0 L295,5 L300,8"/><path class="frame-mark" d="M288,3 L297,3 L297,12"/><path class="frame-glyph" d="M292,0 L289,4 L292,8"/><circle class="frame-dot" cx="294.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M0,364 L0,380 L16,380"/><path class="frame-peak" d="M0,372 L5,375 L8,380"/><path class="frame-mark" d="M3,368 L3,377 L12,377"/><path class="frame-glyph" d="M8,380 L11,376 L8,372"/><circle class="frame-dot" cx="5.5" cy="374.5" r="1.3"/><path class="frame-peak" d="M284,380 L300,380 L300,364"/><path class="frame-peak" d="M292,380 L295,375 L300,372"/><path class="frame-mark" d="M288,377 L297,377 L297,368"/><path class="frame-glyph" d="M292,380 L289,376 L292,372"/><circle class="frame-dot" cx="294.5" cy="374.5" r="1.3"/><path class="frame-mark" d="M0,184 L-3,190 L0,196"/><line class="frame-mark" x1="-3" y1="190" x2="-7" y2="190"/><path class="frame-mark" d="M300,184 L303,190 L300,196"/><line class="frame-mark" x1="303" y1="190" x2="307" y2="190"/><path class="frame-mark" d="M144,0 L150,-3 L156,0"/><line class="frame-mark" x1="150" y1="-3" x2="150" y2="-7"/><path class="frame-mark" d="M144,380 L150,383 L156,380"/><line class="frame-mark" x1="150" y1="383" x2="150" y2="387"/></svg></div>
+        <div class="card-image-wrap">
+          <img src="images/obra/obra-001.jpg" alt="Sin Título I" class="card-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-image-placeholder" style="display:none">
+            <div class="card-shimmer"></div>
+            <span class="card-slug">obra-001</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Sin Título I</h3>
+          <p class="card-meta">Fotografía análoga · 2024</p>
+        </div>
+        <div class="card-glow"></div>
+      </a>
+      <a class="gallery-card" href="images/obra/obra-002.jpg" data-index="1" data-lightbox="obra" aria-label="Umbral">
+        <div class="card-giger-frame" aria-hidden="true"><svg viewBox="0 0 300 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="frame-spine" x1="0" y1="0" x2="0" y2="26"/><line class="frame-spine" x1="0" y1="52" x2="0" y2="90"/><line class="frame-spine" x1="0" y1="116" x2="0" y2="154"/><line class="frame-spine" x1="0" y1="180" x2="0" y2="218"/><line class="frame-spine" x1="0" y1="244" x2="0" y2="282"/><line class="frame-spine" x1="0" y1="308" x2="0" y2="346"/><line class="frame-spine" x1="0" y1="354" x2="0" y2="380"/><line class="frame-spine" x1="300" y1="0" x2="300" y2="26"/><line class="frame-spine" x1="300" y1="52" x2="300" y2="90"/><line class="frame-spine" x1="300" y1="116" x2="300" y2="154"/><line class="frame-spine" x1="300" y1="180" x2="300" y2="218"/><line class="frame-spine" x1="300" y1="244" x2="300" y2="282"/><line class="frame-spine" x1="300" y1="308" x2="300" y2="346"/><line class="frame-spine" x1="300" y1="354" x2="300" y2="380"/><line class="frame-spine" x1="0" y1="0" x2="34" y2="0"/><line class="frame-spine" x1="64" y1="0" x2="120" y2="0"/><line class="frame-spine" x1="148" y1="0" x2="200" y2="0"/><line class="frame-spine" x1="228" y1="0" x2="272" y2="0"/><line class="frame-spine" x1="290" y1="0" x2="300" y2="0"/><line class="frame-spine" x1="0" y1="380" x2="34" y2="380"/><line class="frame-spine" x1="64" y1="380" x2="120" y2="380"/><line class="frame-spine" x1="148" y1="380" x2="200" y2="380"/><line class="frame-spine" x1="228" y1="380" x2="272" y2="380"/><line class="frame-spine" x1="290" y1="380" x2="300" y2="380"/><path class="frame-peak" d="M0,26 L-5,32 L-8,39 L-5,46 L0,52 M-5,32 L-3,39 L-5,46 M-8,39 L-12,39"/><path class="frame-peak-shadow" d="M0,29 L-2,32 L-4,39 L-2,46 L0,49"/><path class="frame-peak" d="M0,90 L-5,97 L-8,103 L-5,109 L0,116 M-5,97 L-3,103 L-5,109 M-8,103 L-12,103"/><path class="frame-peak-shadow" d="M0,93 L-2,97 L-4,103 L-2,109 L0,113"/><path class="frame-peak" d="M0,154 L-4,160 L-6,167 L-4,174 L0,180 M-6,167 L-9,167"/><path class="frame-peak-shadow" d="M0,157 L-2,161 L-3,167 L-2,173 L0,177"/><path class="frame-peak" d="M0,218 L-5,225 L-8,231 L-5,237 L0,244 M-5,225 L-3,231 L-5,237 M-8,231 L-12,231"/><path class="frame-peak-shadow" d="M0,221 L-2,225 L-4,231 L-2,237 L0,241"/><path class="frame-peak" d="M0,282 L-4,288 L-6,295 L-4,302 L0,308 M-6,295 L-9,295"/><path class="frame-peak-shadow" d="M0,285 L-2,289 L-3,295 L-2,301 L0,305"/><path class="frame-peak" d="M0,346 L-5,349 L-8,350 L-5,351 L0,354 M-8,350 L-11,350"/><path class="frame-peak-shadow" d="M0,347 L-2,349 L-4,350 L-2,351 L0,353"/><path class="frame-peak" d="M300,26 L305,32 L308,39 L305,46 L300,52 M305,32 L303,39 L305,46 M308,39 L312,39"/><path class="frame-peak-shadow" d="M300,29 L302,32 L304,39 L302,46 L300,49"/><path class="frame-peak" d="M300,90 L305,97 L308,103 L305,109 L300,116 M305,97 L303,103 L305,109 M308,103 L312,103"/><path class="frame-peak-shadow" d="M300,93 L302,97 L304,103 L302,109 L300,113"/><path class="frame-peak" d="M300,154 L304,160 L306,167 L304,174 L300,180 M306,167 L309,167"/><path class="frame-peak-shadow" d="M300,157 L302,161 L303,167 L302,173 L300,177"/><path class="frame-peak" d="M300,218 L305,225 L308,231 L305,237 L300,244 M305,225 L303,231 L305,237 M308,231 L312,231"/><path class="frame-peak-shadow" d="M300,221 L302,225 L304,231 L302,237 L300,241"/><path class="frame-peak" d="M300,282 L304,288 L306,295 L304,302 L300,308 M306,295 L309,295"/><path class="frame-peak-shadow" d="M300,285 L302,289 L303,295 L302,301 L300,305"/><path class="frame-peak" d="M300,346 L305,349 L308,350 L305,351 L300,354 M308,350 L311,350"/><path class="frame-peak-shadow" d="M300,347 L302,349 L304,350 L302,351 L300,353"/><path class="frame-peak" d="M34,0 L40,-5 L49,-8 L58,-5 L64,0 M40,-5 L49,-3 L58,-5 M49,-8 L49,-12"/><path class="frame-peak-shadow" d="M36,0 L41,-4 L49,-6 L57,-4 L62,0"/><path class="frame-peak" d="M120,0 L126,-5 L134,-7 L142,-5 L148,0 M134,-7 L134,-11"/><path class="frame-peak-shadow" d="M122,0 L127,-4 L134,-5 L141,-4 L146,0"/><path class="frame-peak" d="M200,0 L207,-5 L214,-8 L221,-5 L228,0 M207,-5 L214,-3 L221,-5 M214,-8 L214,-12"/><path class="frame-peak-shadow" d="M202,0 L208,-4 L214,-6 L220,-4 L226,0"/><path class="frame-peak" d="M272,0 L276,-4 L281,-6 L286,-4 L290,0 M281,-6 L281,-9"/><path class="frame-peak-shadow" d="M274,0 L277,-3 L281,-4 L285,-3 L288,0"/><path class="frame-peak" d="M34,380 L40,385 L49,388 L58,385 L64,380 M40,385 L49,383 L58,385 M49,388 L49,392"/><path class="frame-peak-shadow" d="M36,380 L41,384 L49,386 L57,384 L62,380"/><path class="frame-peak" d="M120,380 L126,385 L134,387 L142,385 L148,380 M134,387 L134,391"/><path class="frame-peak-shadow" d="M122,380 L127,384 L134,385 L141,384 L146,380"/><path class="frame-peak" d="M200,380 L207,385 L214,388 L221,385 L228,380 M207,385 L214,383 L221,385 M214,388 L214,392"/><path class="frame-peak-shadow" d="M202,380 L208,384 L214,386 L220,384 L226,380"/><path class="frame-peak" d="M272,380 L276,384 L281,386 L286,384 L290,380 M281,386 L281,389"/><path class="frame-peak-shadow" d="M274,380 L277,383 L281,384 L285,383 L288,380"/><path class="frame-peak" d="M0,16 L0,0 L16,0"/><path class="frame-peak" d="M0,8 L5,5 L8,0"/><path class="frame-mark" d="M3,12 L3,3 L12,3"/><path class="frame-glyph" d="M8,0 L11,4 L8,8"/><circle class="frame-dot" cx="5.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M284,0 L300,0 L300,16"/><path class="frame-peak" d="M292,0 L295,5 L300,8"/><path class="frame-mark" d="M288,3 L297,3 L297,12"/><path class="frame-glyph" d="M292,0 L289,4 L292,8"/><circle class="frame-dot" cx="294.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M0,364 L0,380 L16,380"/><path class="frame-peak" d="M0,372 L5,375 L8,380"/><path class="frame-mark" d="M3,368 L3,377 L12,377"/><path class="frame-glyph" d="M8,380 L11,376 L8,372"/><circle class="frame-dot" cx="5.5" cy="374.5" r="1.3"/><path class="frame-peak" d="M284,380 L300,380 L300,364"/><path class="frame-peak" d="M292,380 L295,375 L300,372"/><path class="frame-mark" d="M288,377 L297,377 L297,368"/><path class="frame-glyph" d="M292,380 L289,376 L292,372"/><circle class="frame-dot" cx="294.5" cy="374.5" r="1.3"/><path class="frame-mark" d="M0,184 L-3,190 L0,196"/><line class="frame-mark" x1="-3" y1="190" x2="-7" y2="190"/><path class="frame-mark" d="M300,184 L303,190 L300,196"/><line class="frame-mark" x1="303" y1="190" x2="307" y2="190"/><path class="frame-mark" d="M144,0 L150,-3 L156,0"/><line class="frame-mark" x1="150" y1="-3" x2="150" y2="-7"/><path class="frame-mark" d="M144,380 L150,383 L156,380"/><line class="frame-mark" x1="150" y1="383" x2="150" y2="387"/></svg></div>
+        <div class="card-image-wrap">
+          <img src="images/obra/obra-002.jpg" alt="Umbral" class="card-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-image-placeholder" style="display:none">
+            <div class="card-shimmer"></div>
+            <span class="card-slug">obra-002</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Umbral</h3>
+          <p class="card-meta">Fotografía digital · 2024</p>
+        </div>
+        <div class="card-glow"></div>
+      </a>
+      <a class="gallery-card" href="images/obra/obra-003.jpg" data-index="2" data-lightbox="obra" aria-label="Membrana">
+        <div class="card-giger-frame" aria-hidden="true"><svg viewBox="0 0 300 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="frame-spine" x1="0" y1="0" x2="0" y2="26"/><line class="frame-spine" x1="0" y1="52" x2="0" y2="90"/><line class="frame-spine" x1="0" y1="116" x2="0" y2="154"/><line class="frame-spine" x1="0" y1="180" x2="0" y2="218"/><line class="frame-spine" x1="0" y1="244" x2="0" y2="282"/><line class="frame-spine" x1="0" y1="308" x2="0" y2="346"/><line class="frame-spine" x1="0" y1="354" x2="0" y2="380"/><line class="frame-spine" x1="300" y1="0" x2="300" y2="26"/><line class="frame-spine" x1="300" y1="52" x2="300" y2="90"/><line class="frame-spine" x1="300" y1="116" x2="300" y2="154"/><line class="frame-spine" x1="300" y1="180" x2="300" y2="218"/><line class="frame-spine" x1="300" y1="244" x2="300" y2="282"/><line class="frame-spine" x1="300" y1="308" x2="300" y2="346"/><line class="frame-spine" x1="300" y1="354" x2="300" y2="380"/><line class="frame-spine" x1="0" y1="0" x2="34" y2="0"/><line class="frame-spine" x1="64" y1="0" x2="120" y2="0"/><line class="frame-spine" x1="148" y1="0" x2="200" y2="0"/><line class="frame-spine" x1="228" y1="0" x2="272" y2="0"/><line class="frame-spine" x1="290" y1="0" x2="300" y2="0"/><line class="frame-spine" x1="0" y1="380" x2="34" y2="380"/><line class="frame-spine" x1="64" y1="380" x2="120" y2="380"/><line class="frame-spine" x1="148" y1="380" x2="200" y2="380"/><line class="frame-spine" x1="228" y1="380" x2="272" y2="380"/><line class="frame-spine" x1="290" y1="380" x2="300" y2="380"/><path class="frame-peak" d="M0,26 L-5,32 L-8,39 L-5,46 L0,52 M-5,32 L-3,39 L-5,46 M-8,39 L-12,39"/><path class="frame-peak-shadow" d="M0,29 L-2,32 L-4,39 L-2,46 L0,49"/><path class="frame-peak" d="M0,90 L-5,97 L-8,103 L-5,109 L0,116 M-5,97 L-3,103 L-5,109 M-8,103 L-12,103"/><path class="frame-peak-shadow" d="M0,93 L-2,97 L-4,103 L-2,109 L0,113"/><path class="frame-peak" d="M0,154 L-4,160 L-6,167 L-4,174 L0,180 M-6,167 L-9,167"/><path class="frame-peak-shadow" d="M0,157 L-2,161 L-3,167 L-2,173 L0,177"/><path class="frame-peak" d="M0,218 L-5,225 L-8,231 L-5,237 L0,244 M-5,225 L-3,231 L-5,237 M-8,231 L-12,231"/><path class="frame-peak-shadow" d="M0,221 L-2,225 L-4,231 L-2,237 L0,241"/><path class="frame-peak" d="M0,282 L-4,288 L-6,295 L-4,302 L0,308 M-6,295 L-9,295"/><path class="frame-peak-shadow" d="M0,285 L-2,289 L-3,295 L-2,301 L0,305"/><path class="frame-peak" d="M0,346 L-5,349 L-8,350 L-5,351 L0,354 M-8,350 L-11,350"/><path class="frame-peak-shadow" d="M0,347 L-2,349 L-4,350 L-2,351 L0,353"/><path class="frame-peak" d="M300,26 L305,32 L308,39 L305,46 L300,52 M305,32 L303,39 L305,46 M308,39 L312,39"/><path class="frame-peak-shadow" d="M300,29 L302,32 L304,39 L302,46 L300,49"/><path class="frame-peak" d="M300,90 L305,97 L308,103 L305,109 L300,116 M305,97 L303,103 L305,109 M308,103 L312,103"/><path class="frame-peak-shadow" d="M300,93 L302,97 L304,103 L302,109 L300,113"/><path class="frame-peak" d="M300,154 L304,160 L306,167 L304,174 L300,180 M306,167 L309,167"/><path class="frame-peak-shadow" d="M300,157 L302,161 L303,167 L302,173 L300,177"/><path class="frame-peak" d="M300,218 L305,225 L308,231 L305,237 L300,244 M305,225 L303,231 L305,237 M308,231 L312,231"/><path class="frame-peak-shadow" d="M300,221 L302,225 L304,231 L302,237 L300,241"/><path class="frame-peak" d="M300,282 L304,288 L306,295 L304,302 L300,308 M306,295 L309,295"/><path class="frame-peak-shadow" d="M300,285 L302,289 L303,295 L302,301 L300,305"/><path class="frame-peak" d="M300,346 L305,349 L308,350 L305,351 L300,354 M308,350 L311,350"/><path class="frame-peak-shadow" d="M300,347 L302,349 L304,350 L302,351 L300,353"/><path class="frame-peak" d="M34,0 L40,-5 L49,-8 L58,-5 L64,0 M40,-5 L49,-3 L58,-5 M49,-8 L49,-12"/><path class="frame-peak-shadow" d="M36,0 L41,-4 L49,-6 L57,-4 L62,0"/><path class="frame-peak" d="M120,0 L126,-5 L134,-7 L142,-5 L148,0 M134,-7 L134,-11"/><path class="frame-peak-shadow" d="M122,0 L127,-4 L134,-5 L141,-4 L146,0"/><path class="frame-peak" d="M200,0 L207,-5 L214,-8 L221,-5 L228,0 M207,-5 L214,-3 L221,-5 M214,-8 L214,-12"/><path class="frame-peak-shadow" d="M202,0 L208,-4 L214,-6 L220,-4 L226,0"/><path class="frame-peak" d="M272,0 L276,-4 L281,-6 L286,-4 L290,0 M281,-6 L281,-9"/><path class="frame-peak-shadow" d="M274,0 L277,-3 L281,-4 L285,-3 L288,0"/><path class="frame-peak" d="M34,380 L40,385 L49,388 L58,385 L64,380 M40,385 L49,383 L58,385 M49,388 L49,392"/><path class="frame-peak-shadow" d="M36,380 L41,384 L49,386 L57,384 L62,380"/><path class="frame-peak" d="M120,380 L126,385 L134,387 L142,385 L148,380 M134,387 L134,391"/><path class="frame-peak-shadow" d="M122,380 L127,384 L134,385 L141,384 L146,380"/><path class="frame-peak" d="M200,380 L207,385 L214,388 L221,385 L228,380 M207,385 L214,383 L221,385 M214,388 L214,392"/><path class="frame-peak-shadow" d="M202,380 L208,384 L214,386 L220,384 L226,380"/><path class="frame-peak" d="M272,380 L276,384 L281,386 L286,384 L290,380 M281,386 L281,389"/><path class="frame-peak-shadow" d="M274,380 L277,383 L281,384 L285,383 L288,380"/><path class="frame-peak" d="M0,16 L0,0 L16,0"/><path class="frame-peak" d="M0,8 L5,5 L8,0"/><path class="frame-mark" d="M3,12 L3,3 L12,3"/><path class="frame-glyph" d="M8,0 L11,4 L8,8"/><circle class="frame-dot" cx="5.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M284,0 L300,0 L300,16"/><path class="frame-peak" d="M292,0 L295,5 L300,8"/><path class="frame-mark" d="M288,3 L297,3 L297,12"/><path class="frame-glyph" d="M292,0 L289,4 L292,8"/><circle class="frame-dot" cx="294.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M0,364 L0,380 L16,380"/><path class="frame-peak" d="M0,372 L5,375 L8,380"/><path class="frame-mark" d="M3,368 L3,377 L12,377"/><path class="frame-glyph" d="M8,380 L11,376 L8,372"/><circle class="frame-dot" cx="5.5" cy="374.5" r="1.3"/><path class="frame-peak" d="M284,380 L300,380 L300,364"/><path class="frame-peak" d="M292,380 L295,375 L300,372"/><path class="frame-mark" d="M288,377 L297,377 L297,368"/><path class="frame-glyph" d="M292,380 L289,376 L292,372"/><circle class="frame-dot" cx="294.5" cy="374.5" r="1.3"/><path class="frame-mark" d="M0,184 L-3,190 L0,196"/><line class="frame-mark" x1="-3" y1="190" x2="-7" y2="190"/><path class="frame-mark" d="M300,184 L303,190 L300,196"/><line class="frame-mark" x1="303" y1="190" x2="307" y2="190"/><path class="frame-mark" d="M144,0 L150,-3 L156,0"/><line class="frame-mark" x1="150" y1="-3" x2="150" y2="-7"/><path class="frame-mark" d="M144,380 L150,383 L156,380"/><line class="frame-mark" x1="150" y1="383" x2="150" y2="387"/></svg></div>
+        <div class="card-image-wrap">
+          <img src="images/obra/obra-003.jpg" alt="Membrana" class="card-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-image-placeholder" style="display:none">
+            <div class="card-shimmer"></div>
+            <span class="card-slug">obra-003</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Membrana</h3>
+          <p class="card-meta">Fotografía digital · 2023</p>
+        </div>
+        <div class="card-glow"></div>
+      </a>
+      <a class="gallery-card" href="images/obra/obra-004.jpg" data-index="3" data-lightbox="obra" aria-label="Vértebra">
+        <div class="card-giger-frame" aria-hidden="true"><svg viewBox="0 0 300 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="frame-spine" x1="0" y1="0" x2="0" y2="26"/><line class="frame-spine" x1="0" y1="52" x2="0" y2="90"/><line class="frame-spine" x1="0" y1="116" x2="0" y2="154"/><line class="frame-spine" x1="0" y1="180" x2="0" y2="218"/><line class="frame-spine" x1="0" y1="244" x2="0" y2="282"/><line class="frame-spine" x1="0" y1="308" x2="0" y2="346"/><line class="frame-spine" x1="0" y1="354" x2="0" y2="380"/><line class="frame-spine" x1="300" y1="0" x2="300" y2="26"/><line class="frame-spine" x1="300" y1="52" x2="300" y2="90"/><line class="frame-spine" x1="300" y1="116" x2="300" y2="154"/><line class="frame-spine" x1="300" y1="180" x2="300" y2="218"/><line class="frame-spine" x1="300" y1="244" x2="300" y2="282"/><line class="frame-spine" x1="300" y1="308" x2="300" y2="346"/><line class="frame-spine" x1="300" y1="354" x2="300" y2="380"/><line class="frame-spine" x1="0" y1="0" x2="34" y2="0"/><line class="frame-spine" x1="64" y1="0" x2="120" y2="0"/><line class="frame-spine" x1="148" y1="0" x2="200" y2="0"/><line class="frame-spine" x1="228" y1="0" x2="272" y2="0"/><line class="frame-spine" x1="290" y1="0" x2="300" y2="0"/><line class="frame-spine" x1="0" y1="380" x2="34" y2="380"/><line class="frame-spine" x1="64" y1="380" x2="120" y2="380"/><line class="frame-spine" x1="148" y1="380" x2="200" y2="380"/><line class="frame-spine" x1="228" y1="380" x2="272" y2="380"/><line class="frame-spine" x1="290" y1="380" x2="300" y2="380"/><path class="frame-peak" d="M0,26 L-5,32 L-8,39 L-5,46 L0,52 M-5,32 L-3,39 L-5,46 M-8,39 L-12,39"/><path class="frame-peak-shadow" d="M0,29 L-2,32 L-4,39 L-2,46 L0,49"/><path class="frame-peak" d="M0,90 L-5,97 L-8,103 L-5,109 L0,116 M-5,97 L-3,103 L-5,109 M-8,103 L-12,103"/><path class="frame-peak-shadow" d="M0,93 L-2,97 L-4,103 L-2,109 L0,113"/><path class="frame-peak" d="M0,154 L-4,160 L-6,167 L-4,174 L0,180 M-6,167 L-9,167"/><path class="frame-peak-shadow" d="M0,157 L-2,161 L-3,167 L-2,173 L0,177"/><path class="frame-peak" d="M0,218 L-5,225 L-8,231 L-5,237 L0,244 M-5,225 L-3,231 L-5,237 M-8,231 L-12,231"/><path class="frame-peak-shadow" d="M0,221 L-2,225 L-4,231 L-2,237 L0,241"/><path class="frame-peak" d="M0,282 L-4,288 L-6,295 L-4,302 L0,308 M-6,295 L-9,295"/><path class="frame-peak-shadow" d="M0,285 L-2,289 L-3,295 L-2,301 L0,305"/><path class="frame-peak" d="M0,346 L-5,349 L-8,350 L-5,351 L0,354 M-8,350 L-11,350"/><path class="frame-peak-shadow" d="M0,347 L-2,349 L-4,350 L-2,351 L0,353"/><path class="frame-peak" d="M300,26 L305,32 L308,39 L305,46 L300,52 M305,32 L303,39 L305,46 M308,39 L312,39"/><path class="frame-peak-shadow" d="M300,29 L302,32 L304,39 L302,46 L300,49"/><path class="frame-peak" d="M300,90 L305,97 L308,103 L305,109 L300,116 M305,97 L303,103 L305,109 M308,103 L312,103"/><path class="frame-peak-shadow" d="M300,93 L302,97 L304,103 L302,109 L300,113"/><path class="frame-peak" d="M300,154 L304,160 L306,167 L304,174 L300,180 M306,167 L309,167"/><path class="frame-peak-shadow" d="M300,157 L302,161 L303,167 L302,173 L300,177"/><path class="frame-peak" d="M300,218 L305,225 L308,231 L305,237 L300,244 M305,225 L303,231 L305,237 M308,231 L312,231"/><path class="frame-peak-shadow" d="M300,221 L302,225 L304,231 L302,237 L300,241"/><path class="frame-peak" d="M300,282 L304,288 L306,295 L304,302 L300,308 M306,295 L309,295"/><path class="frame-peak-shadow" d="M300,285 L302,289 L303,295 L302,301 L300,305"/><path class="frame-peak" d="M300,346 L305,349 L308,350 L305,351 L300,354 M308,350 L311,350"/><path class="frame-peak-shadow" d="M300,347 L302,349 L304,350 L302,351 L300,353"/><path class="frame-peak" d="M34,0 L40,-5 L49,-8 L58,-5 L64,0 M40,-5 L49,-3 L58,-5 M49,-8 L49,-12"/><path class="frame-peak-shadow" d="M36,0 L41,-4 L49,-6 L57,-4 L62,0"/><path class="frame-peak" d="M120,0 L126,-5 L134,-7 L142,-5 L148,0 M134,-7 L134,-11"/><path class="frame-peak-shadow" d="M122,0 L127,-4 L134,-5 L141,-4 L146,0"/><path class="frame-peak" d="M200,0 L207,-5 L214,-8 L221,-5 L228,0 M207,-5 L214,-3 L221,-5 M214,-8 L214,-12"/><path class="frame-peak-shadow" d="M202,0 L208,-4 L214,-6 L220,-4 L226,0"/><path class="frame-peak" d="M272,0 L276,-4 L281,-6 L286,-4 L290,0 M281,-6 L281,-9"/><path class="frame-peak-shadow" d="M274,0 L277,-3 L281,-4 L285,-3 L288,0"/><path class="frame-peak" d="M34,380 L40,385 L49,388 L58,385 L64,380 M40,385 L49,383 L58,385 M49,388 L49,392"/><path class="frame-peak-shadow" d="M36,380 L41,384 L49,386 L57,384 L62,380"/><path class="frame-peak" d="M120,380 L126,385 L134,387 L142,385 L148,380 M134,387 L134,391"/><path class="frame-peak-shadow" d="M122,380 L127,384 L134,385 L141,384 L146,380"/><path class="frame-peak" d="M200,380 L207,385 L214,388 L221,385 L228,380 M207,385 L214,383 L221,385 M214,388 L214,392"/><path class="frame-peak-shadow" d="M202,380 L208,384 L214,386 L220,384 L226,380"/><path class="frame-peak" d="M272,380 L276,384 L281,386 L286,384 L290,380 M281,386 L281,389"/><path class="frame-peak-shadow" d="M274,380 L277,383 L281,384 L285,383 L288,380"/><path class="frame-peak" d="M0,16 L0,0 L16,0"/><path class="frame-peak" d="M0,8 L5,5 L8,0"/><path class="frame-mark" d="M3,12 L3,3 L12,3"/><path class="frame-glyph" d="M8,0 L11,4 L8,8"/><circle class="frame-dot" cx="5.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M284,0 L300,0 L300,16"/><path class="frame-peak" d="M292,0 L295,5 L300,8"/><path class="frame-mark" d="M288,3 L297,3 L297,12"/><path class="frame-glyph" d="M292,0 L289,4 L292,8"/><circle class="frame-dot" cx="294.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M0,364 L0,380 L16,380"/><path class="frame-peak" d="M0,372 L5,375 L8,380"/><path class="frame-mark" d="M3,368 L3,377 L12,377"/><path class="frame-glyph" d="M8,380 L11,376 L8,372"/><circle class="frame-dot" cx="5.5" cy="374.5" r="1.3"/><path class="frame-peak" d="M284,380 L300,380 L300,364"/><path class="frame-peak" d="M292,380 L295,375 L300,372"/><path class="frame-mark" d="M288,377 L297,377 L297,368"/><path class="frame-glyph" d="M292,380 L289,376 L292,372"/><circle class="frame-dot" cx="294.5" cy="374.5" r="1.3"/><path class="frame-mark" d="M0,184 L-3,190 L0,196"/><line class="frame-mark" x1="-3" y1="190" x2="-7" y2="190"/><path class="frame-mark" d="M300,184 L303,190 L300,196"/><line class="frame-mark" x1="303" y1="190" x2="307" y2="190"/><path class="frame-mark" d="M144,0 L150,-3 L156,0"/><line class="frame-mark" x1="150" y1="-3" x2="150" y2="-7"/><path class="frame-mark" d="M144,380 L150,383 L156,380"/><line class="frame-mark" x1="150" y1="383" x2="150" y2="387"/></svg></div>
+        <div class="card-image-wrap">
+          <img src="images/obra/obra-004.jpg" alt="Vértebra" class="card-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-image-placeholder" style="display:none">
+            <div class="card-shimmer"></div>
+            <span class="card-slug">obra-004</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Vértebra</h3>
+          <p class="card-meta">Fotografía análoga · 2023</p>
+        </div>
+        <div class="card-glow"></div>
+      </a>
+      <a class="gallery-card" href="images/obra/obra-005.jpg" data-index="4" data-lightbox="obra" aria-label="Pneuma">
+        <div class="card-giger-frame" aria-hidden="true"><svg viewBox="0 0 300 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="frame-spine" x1="0" y1="0" x2="0" y2="26"/><line class="frame-spine" x1="0" y1="52" x2="0" y2="90"/><line class="frame-spine" x1="0" y1="116" x2="0" y2="154"/><line class="frame-spine" x1="0" y1="180" x2="0" y2="218"/><line class="frame-spine" x1="0" y1="244" x2="0" y2="282"/><line class="frame-spine" x1="0" y1="308" x2="0" y2="346"/><line class="frame-spine" x1="0" y1="354" x2="0" y2="380"/><line class="frame-spine" x1="300" y1="0" x2="300" y2="26"/><line class="frame-spine" x1="300" y1="52" x2="300" y2="90"/><line class="frame-spine" x1="300" y1="116" x2="300" y2="154"/><line class="frame-spine" x1="300" y1="180" x2="300" y2="218"/><line class="frame-spine" x1="300" y1="244" x2="300" y2="282"/><line class="frame-spine" x1="300" y1="308" x2="300" y2="346"/><line class="frame-spine" x1="300" y1="354" x2="300" y2="380"/><line class="frame-spine" x1="0" y1="0" x2="34" y2="0"/><line class="frame-spine" x1="64" y1="0" x2="120" y2="0"/><line class="frame-spine" x1="148" y1="0" x2="200" y2="0"/><line class="frame-spine" x1="228" y1="0" x2="272" y2="0"/><line class="frame-spine" x1="290" y1="0" x2="300" y2="0"/><line class="frame-spine" x1="0" y1="380" x2="34" y2="380"/><line class="frame-spine" x1="64" y1="380" x2="120" y2="380"/><line class="frame-spine" x1="148" y1="380" x2="200" y2="380"/><line class="frame-spine" x1="228" y1="380" x2="272" y2="380"/><line class="frame-spine" x1="290" y1="380" x2="300" y2="380"/><path class="frame-peak" d="M0,26 L-5,32 L-8,39 L-5,46 L0,52 M-5,32 L-3,39 L-5,46 M-8,39 L-12,39"/><path class="frame-peak-shadow" d="M0,29 L-2,32 L-4,39 L-2,46 L0,49"/><path class="frame-peak" d="M0,90 L-5,97 L-8,103 L-5,109 L0,116 M-5,97 L-3,103 L-5,109 M-8,103 L-12,103"/><path class="frame-peak-shadow" d="M0,93 L-2,97 L-4,103 L-2,109 L0,113"/><path class="frame-peak" d="M0,154 L-4,160 L-6,167 L-4,174 L0,180 M-6,167 L-9,167"/><path class="frame-peak-shadow" d="M0,157 L-2,161 L-3,167 L-2,173 L0,177"/><path class="frame-peak" d="M0,218 L-5,225 L-8,231 L-5,237 L0,244 M-5,225 L-3,231 L-5,237 M-8,231 L-12,231"/><path class="frame-peak-shadow" d="M0,221 L-2,225 L-4,231 L-2,237 L0,241"/><path class="frame-peak" d="M0,282 L-4,288 L-6,295 L-4,302 L0,308 M-6,295 L-9,295"/><path class="frame-peak-shadow" d="M0,285 L-2,289 L-3,295 L-2,301 L0,305"/><path class="frame-peak" d="M0,346 L-5,349 L-8,350 L-5,351 L0,354 M-8,350 L-11,350"/><path class="frame-peak-shadow" d="M0,347 L-2,349 L-4,350 L-2,351 L0,353"/><path class="frame-peak" d="M300,26 L305,32 L308,39 L305,46 L300,52 M305,32 L303,39 L305,46 M308,39 L312,39"/><path class="frame-peak-shadow" d="M300,29 L302,32 L304,39 L302,46 L300,49"/><path class="frame-peak" d="M300,90 L305,97 L308,103 L305,109 L300,116 M305,97 L303,103 L305,109 M308,103 L312,103"/><path class="frame-peak-shadow" d="M300,93 L302,97 L304,103 L302,109 L300,113"/><path class="frame-peak" d="M300,154 L304,160 L306,167 L304,174 L300,180 M306,167 L309,167"/><path class="frame-peak-shadow" d="M300,157 L302,161 L303,167 L302,173 L300,177"/><path class="frame-peak" d="M300,218 L305,225 L308,231 L305,237 L300,244 M305,225 L303,231 L305,237 M308,231 L312,231"/><path class="frame-peak-shadow" d="M300,221 L302,225 L304,231 L302,237 L300,241"/><path class="frame-peak" d="M300,282 L304,288 L306,295 L304,302 L300,308 M306,295 L309,295"/><path class="frame-peak-shadow" d="M300,285 L302,289 L303,295 L302,301 L300,305"/><path class="frame-peak" d="M300,346 L305,349 L308,350 L305,351 L300,354 M308,350 L311,350"/><path class="frame-peak-shadow" d="M300,347 L302,349 L304,350 L302,351 L300,353"/><path class="frame-peak" d="M34,0 L40,-5 L49,-8 L58,-5 L64,0 M40,-5 L49,-3 L58,-5 M49,-8 L49,-12"/><path class="frame-peak-shadow" d="M36,0 L41,-4 L49,-6 L57,-4 L62,0"/><path class="frame-peak" d="M120,0 L126,-5 L134,-7 L142,-5 L148,0 M134,-7 L134,-11"/><path class="frame-peak-shadow" d="M122,0 L127,-4 L134,-5 L141,-4 L146,0"/><path class="frame-peak" d="M200,0 L207,-5 L214,-8 L221,-5 L228,0 M207,-5 L214,-3 L221,-5 M214,-8 L214,-12"/><path class="frame-peak-shadow" d="M202,0 L208,-4 L214,-6 L220,-4 L226,0"/><path class="frame-peak" d="M272,0 L276,-4 L281,-6 L286,-4 L290,0 M281,-6 L281,-9"/><path class="frame-peak-shadow" d="M274,0 L277,-3 L281,-4 L285,-3 L288,0"/><path class="frame-peak" d="M34,380 L40,385 L49,388 L58,385 L64,380 M40,385 L49,383 L58,385 M49,388 L49,392"/><path class="frame-peak-shadow" d="M36,380 L41,384 L49,386 L57,384 L62,380"/><path class="frame-peak" d="M120,380 L126,385 L134,387 L142,385 L148,380 M134,387 L134,391"/><path class="frame-peak-shadow" d="M122,380 L127,384 L134,385 L141,384 L146,380"/><path class="frame-peak" d="M200,380 L207,385 L214,388 L221,385 L228,380 M207,385 L214,383 L221,385 M214,388 L214,392"/><path class="frame-peak-shadow" d="M202,380 L208,384 L214,386 L220,384 L226,380"/><path class="frame-peak" d="M272,380 L276,384 L281,386 L286,384 L290,380 M281,386 L281,389"/><path class="frame-peak-shadow" d="M274,380 L277,383 L281,384 L285,383 L288,380"/><path class="frame-peak" d="M0,16 L0,0 L16,0"/><path class="frame-peak" d="M0,8 L5,5 L8,0"/><path class="frame-mark" d="M3,12 L3,3 L12,3"/><path class="frame-glyph" d="M8,0 L11,4 L8,8"/><circle class="frame-dot" cx="5.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M284,0 L300,0 L300,16"/><path class="frame-peak" d="M292,0 L295,5 L300,8"/><path class="frame-mark" d="M288,3 L297,3 L297,12"/><path class="frame-glyph" d="M292,0 L289,4 L292,8"/><circle class="frame-dot" cx="294.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M0,364 L0,380 L16,380"/><path class="frame-peak" d="M0,372 L5,375 L8,380"/><path class="frame-mark" d="M3,368 L3,377 L12,377"/><path class="frame-glyph" d="M8,380 L11,376 L8,372"/><circle class="frame-dot" cx="5.5" cy="374.5" r="1.3"/><path class="frame-peak" d="M284,380 L300,380 L300,364"/><path class="frame-peak" d="M292,380 L295,375 L300,372"/><path class="frame-mark" d="M288,377 L297,377 L297,368"/><path class="frame-glyph" d="M292,380 L289,376 L292,372"/><circle class="frame-dot" cx="294.5" cy="374.5" r="1.3"/><path class="frame-mark" d="M0,184 L-3,190 L0,196"/><line class="frame-mark" x1="-3" y1="190" x2="-7" y2="190"/><path class="frame-mark" d="M300,184 L303,190 L300,196"/><line class="frame-mark" x1="303" y1="190" x2="307" y2="190"/><path class="frame-mark" d="M144,0 L150,-3 L156,0"/><line class="frame-mark" x1="150" y1="-3" x2="150" y2="-7"/><path class="frame-mark" d="M144,380 L150,383 L156,380"/><line class="frame-mark" x1="150" y1="383" x2="150" y2="387"/></svg></div>
+        <div class="card-image-wrap">
+          <img src="images/obra/obra-005.jpg" alt="Pneuma" class="card-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-image-placeholder" style="display:none">
+            <div class="card-shimmer"></div>
+            <span class="card-slug">obra-005</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Pneuma</h3>
+          <p class="card-meta">Serie especial · 2024</p>
+        </div>
+        <div class="card-glow"></div>
+      </a>
+      <a class="gallery-card" href="images/obra/obra-006.jpg" data-index="5" data-lightbox="obra" aria-label="Exoesqueleto">
+        <div class="card-giger-frame" aria-hidden="true"><svg viewBox="0 0 300 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="frame-spine" x1="0" y1="0" x2="0" y2="26"/><line class="frame-spine" x1="0" y1="52" x2="0" y2="90"/><line class="frame-spine" x1="0" y1="116" x2="0" y2="154"/><line class="frame-spine" x1="0" y1="180" x2="0" y2="218"/><line class="frame-spine" x1="0" y1="244" x2="0" y2="282"/><line class="frame-spine" x1="0" y1="308" x2="0" y2="346"/><line class="frame-spine" x1="0" y1="354" x2="0" y2="380"/><line class="frame-spine" x1="300" y1="0" x2="300" y2="26"/><line class="frame-spine" x1="300" y1="52" x2="300" y2="90"/><line class="frame-spine" x1="300" y1="116" x2="300" y2="154"/><line class="frame-spine" x1="300" y1="180" x2="300" y2="218"/><line class="frame-spine" x1="300" y1="244" x2="300" y2="282"/><line class="frame-spine" x1="300" y1="308" x2="300" y2="346"/><line class="frame-spine" x1="300" y1="354" x2="300" y2="380"/><line class="frame-spine" x1="0" y1="0" x2="34" y2="0"/><line class="frame-spine" x1="64" y1="0" x2="120" y2="0"/><line class="frame-spine" x1="148" y1="0" x2="200" y2="0"/><line class="frame-spine" x1="228" y1="0" x2="272" y2="0"/><line class="frame-spine" x1="290" y1="0" x2="300" y2="0"/><line class="frame-spine" x1="0" y1="380" x2="34" y2="380"/><line class="frame-spine" x1="64" y1="380" x2="120" y2="380"/><line class="frame-spine" x1="148" y1="380" x2="200" y2="380"/><line class="frame-spine" x1="228" y1="380" x2="272" y2="380"/><line class="frame-spine" x1="290" y1="380" x2="300" y2="380"/><path class="frame-peak" d="M0,26 L-5,32 L-8,39 L-5,46 L0,52 M-5,32 L-3,39 L-5,46 M-8,39 L-12,39"/><path class="frame-peak-shadow" d="M0,29 L-2,32 L-4,39 L-2,46 L0,49"/><path class="frame-peak" d="M0,90 L-5,97 L-8,103 L-5,109 L0,116 M-5,97 L-3,103 L-5,109 M-8,103 L-12,103"/><path class="frame-peak-shadow" d="M0,93 L-2,97 L-4,103 L-2,109 L0,113"/><path class="frame-peak" d="M0,154 L-4,160 L-6,167 L-4,174 L0,180 M-6,167 L-9,167"/><path class="frame-peak-shadow" d="M0,157 L-2,161 L-3,167 L-2,173 L0,177"/><path class="frame-peak" d="M0,218 L-5,225 L-8,231 L-5,237 L0,244 M-5,225 L-3,231 L-5,237 M-8,231 L-12,231"/><path class="frame-peak-shadow" d="M0,221 L-2,225 L-4,231 L-2,237 L0,241"/><path class="frame-peak" d="M0,282 L-4,288 L-6,295 L-4,302 L0,308 M-6,295 L-9,295"/><path class="frame-peak-shadow" d="M0,285 L-2,289 L-3,295 L-2,301 L0,305"/><path class="frame-peak" d="M0,346 L-5,349 L-8,350 L-5,351 L0,354 M-8,350 L-11,350"/><path class="frame-peak-shadow" d="M0,347 L-2,349 L-4,350 L-2,351 L0,353"/><path class="frame-peak" d="M300,26 L305,32 L308,39 L305,46 L300,52 M305,32 L303,39 L305,46 M308,39 L312,39"/><path class="frame-peak-shadow" d="M300,29 L302,32 L304,39 L302,46 L300,49"/><path class="frame-peak" d="M300,90 L305,97 L308,103 L305,109 L300,116 M305,97 L303,103 L305,109 M308,103 L312,103"/><path class="frame-peak-shadow" d="M300,93 L302,97 L304,103 L302,109 L300,113"/><path class="frame-peak" d="M300,154 L304,160 L306,167 L304,174 L300,180 M306,167 L309,167"/><path class="frame-peak-shadow" d="M300,157 L302,161 L303,167 L302,173 L300,177"/><path class="frame-peak" d="M300,218 L305,225 L308,231 L305,237 L300,244 M305,225 L303,231 L305,237 M308,231 L312,231"/><path class="frame-peak-shadow" d="M300,221 L302,225 L304,231 L302,237 L300,241"/><path class="frame-peak" d="M300,282 L304,288 L306,295 L304,302 L300,308 M306,295 L309,295"/><path class="frame-peak-shadow" d="M300,285 L302,289 L303,295 L302,301 L300,305"/><path class="frame-peak" d="M300,346 L305,349 L308,350 L305,351 L300,354 M308,350 L311,350"/><path class="frame-peak-shadow" d="M300,347 L302,349 L304,350 L302,351 L300,353"/><path class="frame-peak" d="M34,0 L40,-5 L49,-8 L58,-5 L64,0 M40,-5 L49,-3 L58,-5 M49,-8 L49,-12"/><path class="frame-peak-shadow" d="M36,0 L41,-4 L49,-6 L57,-4 L62,0"/><path class="frame-peak" d="M120,0 L126,-5 L134,-7 L142,-5 L148,0 M134,-7 L134,-11"/><path class="frame-peak-shadow" d="M122,0 L127,-4 L134,-5 L141,-4 L146,0"/><path class="frame-peak" d="M200,0 L207,-5 L214,-8 L221,-5 L228,0 M207,-5 L214,-3 L221,-5 M214,-8 L214,-12"/><path class="frame-peak-shadow" d="M202,0 L208,-4 L214,-6 L220,-4 L226,0"/><path class="frame-peak" d="M272,0 L276,-4 L281,-6 L286,-4 L290,0 M281,-6 L281,-9"/><path class="frame-peak-shadow" d="M274,0 L277,-3 L281,-4 L285,-3 L288,0"/><path class="frame-peak" d="M34,380 L40,385 L49,388 L58,385 L64,380 M40,385 L49,383 L58,385 M49,388 L49,392"/><path class="frame-peak-shadow" d="M36,380 L41,384 L49,386 L57,384 L62,380"/><path class="frame-peak" d="M120,380 L126,385 L134,387 L142,385 L148,380 M134,387 L134,391"/><path class="frame-peak-shadow" d="M122,380 L127,384 L134,385 L141,384 L146,380"/><path class="frame-peak" d="M200,380 L207,385 L214,388 L221,385 L228,380 M207,385 L214,383 L221,385 M214,388 L214,392"/><path class="frame-peak-shadow" d="M202,380 L208,384 L214,386 L220,384 L226,380"/><path class="frame-peak" d="M272,380 L276,384 L281,386 L286,384 L290,380 M281,386 L281,389"/><path class="frame-peak-shadow" d="M274,380 L277,383 L281,384 L285,383 L288,380"/><path class="frame-peak" d="M0,16 L0,0 L16,0"/><path class="frame-peak" d="M0,8 L5,5 L8,0"/><path class="frame-mark" d="M3,12 L3,3 L12,3"/><path class="frame-glyph" d="M8,0 L11,4 L8,8"/><circle class="frame-dot" cx="5.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M284,0 L300,0 L300,16"/><path class="frame-peak" d="M292,0 L295,5 L300,8"/><path class="frame-mark" d="M288,3 L297,3 L297,12"/><path class="frame-glyph" d="M292,0 L289,4 L292,8"/><circle class="frame-dot" cx="294.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M0,364 L0,380 L16,380"/><path class="frame-peak" d="M0,372 L5,375 L8,380"/><path class="frame-mark" d="M3,368 L3,377 L12,377"/><path class="frame-glyph" d="M8,380 L11,376 L8,372"/><circle class="frame-dot" cx="5.5" cy="374.5" r="1.3"/><path class="frame-peak" d="M284,380 L300,380 L300,364"/><path class="frame-peak" d="M292,380 L295,375 L300,372"/><path class="frame-mark" d="M288,377 L297,377 L297,368"/><path class="frame-glyph" d="M292,380 L289,376 L292,372"/><circle class="frame-dot" cx="294.5" cy="374.5" r="1.3"/><path class="frame-mark" d="M0,184 L-3,190 L0,196"/><line class="frame-mark" x1="-3" y1="190" x2="-7" y2="190"/><path class="frame-mark" d="M300,184 L303,190 L300,196"/><line class="frame-mark" x1="303" y1="190" x2="307" y2="190"/><path class="frame-mark" d="M144,0 L150,-3 L156,0"/><line class="frame-mark" x1="150" y1="-3" x2="150" y2="-7"/><path class="frame-mark" d="M144,380 L150,383 L156,380"/><line class="frame-mark" x1="150" y1="383" x2="150" y2="387"/></svg></div>
+        <div class="card-image-wrap">
+          <img src="images/obra/obra-006.jpg" alt="Exoesqueleto" class="card-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-image-placeholder" style="display:none">
+            <div class="card-shimmer"></div>
+            <span class="card-slug">obra-006</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Exoesqueleto</h3>
+          <p class="card-meta">Fotografía digital · 2024</p>
+        </div>
+        <div class="card-glow"></div>
+      </a>
+      <a class="gallery-card" href="images/obra/obra-007.jpg" data-index="6" data-lightbox="obra" aria-label="Nervatura">
+        <div class="card-giger-frame" aria-hidden="true"><svg viewBox="0 0 300 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="frame-spine" x1="0" y1="0" x2="0" y2="26"/><line class="frame-spine" x1="0" y1="52" x2="0" y2="90"/><line class="frame-spine" x1="0" y1="116" x2="0" y2="154"/><line class="frame-spine" x1="0" y1="180" x2="0" y2="218"/><line class="frame-spine" x1="0" y1="244" x2="0" y2="282"/><line class="frame-spine" x1="0" y1="308" x2="0" y2="346"/><line class="frame-spine" x1="0" y1="354" x2="0" y2="380"/><line class="frame-spine" x1="300" y1="0" x2="300" y2="26"/><line class="frame-spine" x1="300" y1="52" x2="300" y2="90"/><line class="frame-spine" x1="300" y1="116" x2="300" y2="154"/><line class="frame-spine" x1="300" y1="180" x2="300" y2="218"/><line class="frame-spine" x1="300" y1="244" x2="300" y2="282"/><line class="frame-spine" x1="300" y1="308" x2="300" y2="346"/><line class="frame-spine" x1="300" y1="354" x2="300" y2="380"/><line class="frame-spine" x1="0" y1="0" x2="34" y2="0"/><line class="frame-spine" x1="64" y1="0" x2="120" y2="0"/><line class="frame-spine" x1="148" y1="0" x2="200" y2="0"/><line class="frame-spine" x1="228" y1="0" x2="272" y2="0"/><line class="frame-spine" x1="290" y1="0" x2="300" y2="0"/><line class="frame-spine" x1="0" y1="380" x2="34" y2="380"/><line class="frame-spine" x1="64" y1="380" x2="120" y2="380"/><line class="frame-spine" x1="148" y1="380" x2="200" y2="380"/><line class="frame-spine" x1="228" y1="380" x2="272" y2="380"/><line class="frame-spine" x1="290" y1="380" x2="300" y2="380"/><path class="frame-peak" d="M0,26 L-5,32 L-8,39 L-5,46 L0,52 M-5,32 L-3,39 L-5,46 M-8,39 L-12,39"/><path class="frame-peak-shadow" d="M0,29 L-2,32 L-4,39 L-2,46 L0,49"/><path class="frame-peak" d="M0,90 L-5,97 L-8,103 L-5,109 L0,116 M-5,97 L-3,103 L-5,109 M-8,103 L-12,103"/><path class="frame-peak-shadow" d="M0,93 L-2,97 L-4,103 L-2,109 L0,113"/><path class="frame-peak" d="M0,154 L-4,160 L-6,167 L-4,174 L0,180 M-6,167 L-9,167"/><path class="frame-peak-shadow" d="M0,157 L-2,161 L-3,167 L-2,173 L0,177"/><path class="frame-peak" d="M0,218 L-5,225 L-8,231 L-5,237 L0,244 M-5,225 L-3,231 L-5,237 M-8,231 L-12,231"/><path class="frame-peak-shadow" d="M0,221 L-2,225 L-4,231 L-2,237 L0,241"/><path class="frame-peak" d="M0,282 L-4,288 L-6,295 L-4,302 L0,308 M-6,295 L-9,295"/><path class="frame-peak-shadow" d="M0,285 L-2,289 L-3,295 L-2,301 L0,305"/><path class="frame-peak" d="M0,346 L-5,349 L-8,350 L-5,351 L0,354 M-8,350 L-11,350"/><path class="frame-peak-shadow" d="M0,347 L-2,349 L-4,350 L-2,351 L0,353"/><path class="frame-peak" d="M300,26 L305,32 L308,39 L305,46 L300,52 M305,32 L303,39 L305,46 M308,39 L312,39"/><path class="frame-peak-shadow" d="M300,29 L302,32 L304,39 L302,46 L300,49"/><path class="frame-peak" d="M300,90 L305,97 L308,103 L305,109 L300,116 M305,97 L303,103 L305,109 M308,103 L312,103"/><path class="frame-peak-shadow" d="M300,93 L302,97 L304,103 L302,109 L300,113"/><path class="frame-peak" d="M300,154 L304,160 L306,167 L304,174 L300,180 M306,167 L309,167"/><path class="frame-peak-shadow" d="M300,157 L302,161 L303,167 L302,173 L300,177"/><path class="frame-peak" d="M300,218 L305,225 L308,231 L305,237 L300,244 M305,225 L303,231 L305,237 M308,231 L312,231"/><path class="frame-peak-shadow" d="M300,221 L302,225 L304,231 L302,237 L300,241"/><path class="frame-peak" d="M300,282 L304,288 L306,295 L304,302 L300,308 M306,295 L309,295"/><path class="frame-peak-shadow" d="M300,285 L302,289 L303,295 L302,301 L300,305"/><path class="frame-peak" d="M300,346 L305,349 L308,350 L305,351 L300,354 M308,350 L311,350"/><path class="frame-peak-shadow" d="M300,347 L302,349 L304,350 L302,351 L300,353"/><path class="frame-peak" d="M34,0 L40,-5 L49,-8 L58,-5 L64,0 M40,-5 L49,-3 L58,-5 M49,-8 L49,-12"/><path class="frame-peak-shadow" d="M36,0 L41,-4 L49,-6 L57,-4 L62,0"/><path class="frame-peak" d="M120,0 L126,-5 L134,-7 L142,-5 L148,0 M134,-7 L134,-11"/><path class="frame-peak-shadow" d="M122,0 L127,-4 L134,-5 L141,-4 L146,0"/><path class="frame-peak" d="M200,0 L207,-5 L214,-8 L221,-5 L228,0 M207,-5 L214,-3 L221,-5 M214,-8 L214,-12"/><path class="frame-peak-shadow" d="M202,0 L208,-4 L214,-6 L220,-4 L226,0"/><path class="frame-peak" d="M272,0 L276,-4 L281,-6 L286,-4 L290,0 M281,-6 L281,-9"/><path class="frame-peak-shadow" d="M274,0 L277,-3 L281,-4 L285,-3 L288,0"/><path class="frame-peak" d="M34,380 L40,385 L49,388 L58,385 L64,380 M40,385 L49,383 L58,385 M49,388 L49,392"/><path class="frame-peak-shadow" d="M36,380 L41,384 L49,386 L57,384 L62,380"/><path class="frame-peak" d="M120,380 L126,385 L134,387 L142,385 L148,380 M134,387 L134,391"/><path class="frame-peak-shadow" d="M122,380 L127,384 L134,385 L141,384 L146,380"/><path class="frame-peak" d="M200,380 L207,385 L214,388 L221,385 L228,380 M207,385 L214,383 L221,385 M214,388 L214,392"/><path class="frame-peak-shadow" d="M202,380 L208,384 L214,386 L220,384 L226,380"/><path class="frame-peak" d="M272,380 L276,384 L281,386 L286,384 L290,380 M281,386 L281,389"/><path class="frame-peak-shadow" d="M274,380 L277,383 L281,384 L285,383 L288,380"/><path class="frame-peak" d="M0,16 L0,0 L16,0"/><path class="frame-peak" d="M0,8 L5,5 L8,0"/><path class="frame-mark" d="M3,12 L3,3 L12,3"/><path class="frame-glyph" d="M8,0 L11,4 L8,8"/><circle class="frame-dot" cx="5.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M284,0 L300,0 L300,16"/><path class="frame-peak" d="M292,0 L295,5 L300,8"/><path class="frame-mark" d="M288,3 L297,3 L297,12"/><path class="frame-glyph" d="M292,0 L289,4 L292,8"/><circle class="frame-dot" cx="294.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M0,364 L0,380 L16,380"/><path class="frame-peak" d="M0,372 L5,375 L8,380"/><path class="frame-mark" d="M3,368 L3,377 L12,377"/><path class="frame-glyph" d="M8,380 L11,376 L8,372"/><circle class="frame-dot" cx="5.5" cy="374.5" r="1.3"/><path class="frame-peak" d="M284,380 L300,380 L300,364"/><path class="frame-peak" d="M292,380 L295,375 L300,372"/><path class="frame-mark" d="M288,377 L297,377 L297,368"/><path class="frame-glyph" d="M292,380 L289,376 L292,372"/><circle class="frame-dot" cx="294.5" cy="374.5" r="1.3"/><path class="frame-mark" d="M0,184 L-3,190 L0,196"/><line class="frame-mark" x1="-3" y1="190" x2="-7" y2="190"/><path class="frame-mark" d="M300,184 L303,190 L300,196"/><line class="frame-mark" x1="303" y1="190" x2="307" y2="190"/><path class="frame-mark" d="M144,0 L150,-3 L156,0"/><line class="frame-mark" x1="150" y1="-3" x2="150" y2="-7"/><path class="frame-mark" d="M144,380 L150,383 L156,380"/><line class="frame-mark" x1="150" y1="383" x2="150" y2="387"/></svg></div>
+        <div class="card-image-wrap">
+          <img src="images/obra/obra-007.jpg" alt="Nervatura" class="card-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-image-placeholder" style="display:none">
+            <div class="card-shimmer"></div>
+            <span class="card-slug">obra-007</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Nervatura</h3>
+          <p class="card-meta">Fotografía análoga · 2023</p>
+        </div>
+        <div class="card-glow"></div>
+      </a>
+      <a class="gallery-card" href="images/obra/obra-008.jpg" data-index="7" data-lightbox="obra" aria-label="Conducto">
+        <div class="card-giger-frame" aria-hidden="true"><svg viewBox="0 0 300 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="frame-spine" x1="0" y1="0" x2="0" y2="26"/><line class="frame-spine" x1="0" y1="52" x2="0" y2="90"/><line class="frame-spine" x1="0" y1="116" x2="0" y2="154"/><line class="frame-spine" x1="0" y1="180" x2="0" y2="218"/><line class="frame-spine" x1="0" y1="244" x2="0" y2="282"/><line class="frame-spine" x1="0" y1="308" x2="0" y2="346"/><line class="frame-spine" x1="0" y1="354" x2="0" y2="380"/><line class="frame-spine" x1="300" y1="0" x2="300" y2="26"/><line class="frame-spine" x1="300" y1="52" x2="300" y2="90"/><line class="frame-spine" x1="300" y1="116" x2="300" y2="154"/><line class="frame-spine" x1="300" y1="180" x2="300" y2="218"/><line class="frame-spine" x1="300" y1="244" x2="300" y2="282"/><line class="frame-spine" x1="300" y1="308" x2="300" y2="346"/><line class="frame-spine" x1="300" y1="354" x2="300" y2="380"/><line class="frame-spine" x1="0" y1="0" x2="34" y2="0"/><line class="frame-spine" x1="64" y1="0" x2="120" y2="0"/><line class="frame-spine" x1="148" y1="0" x2="200" y2="0"/><line class="frame-spine" x1="228" y1="0" x2="272" y2="0"/><line class="frame-spine" x1="290" y1="0" x2="300" y2="0"/><line class="frame-spine" x1="0" y1="380" x2="34" y2="380"/><line class="frame-spine" x1="64" y1="380" x2="120" y2="380"/><line class="frame-spine" x1="148" y1="380" x2="200" y2="380"/><line class="frame-spine" x1="228" y1="380" x2="272" y2="380"/><line class="frame-spine" x1="290" y1="380" x2="300" y2="380"/><path class="frame-peak" d="M0,26 L-5,32 L-8,39 L-5,46 L0,52 M-5,32 L-3,39 L-5,46 M-8,39 L-12,39"/><path class="frame-peak-shadow" d="M0,29 L-2,32 L-4,39 L-2,46 L0,49"/><path class="frame-peak" d="M0,90 L-5,97 L-8,103 L-5,109 L0,116 M-5,97 L-3,103 L-5,109 M-8,103 L-12,103"/><path class="frame-peak-shadow" d="M0,93 L-2,97 L-4,103 L-2,109 L0,113"/><path class="frame-peak" d="M0,154 L-4,160 L-6,167 L-4,174 L0,180 M-6,167 L-9,167"/><path class="frame-peak-shadow" d="M0,157 L-2,161 L-3,167 L-2,173 L0,177"/><path class="frame-peak" d="M0,218 L-5,225 L-8,231 L-5,237 L0,244 M-5,225 L-3,231 L-5,237 M-8,231 L-12,231"/><path class="frame-peak-shadow" d="M0,221 L-2,225 L-4,231 L-2,237 L0,241"/><path class="frame-peak" d="M0,282 L-4,288 L-6,295 L-4,302 L0,308 M-6,295 L-9,295"/><path class="frame-peak-shadow" d="M0,285 L-2,289 L-3,295 L-2,301 L0,305"/><path class="frame-peak" d="M0,346 L-5,349 L-8,350 L-5,351 L0,354 M-8,350 L-11,350"/><path class="frame-peak-shadow" d="M0,347 L-2,349 L-4,350 L-2,351 L0,353"/><path class="frame-peak" d="M300,26 L305,32 L308,39 L305,46 L300,52 M305,32 L303,39 L305,46 M308,39 L312,39"/><path class="frame-peak-shadow" d="M300,29 L302,32 L304,39 L302,46 L300,49"/><path class="frame-peak" d="M300,90 L305,97 L308,103 L305,109 L300,116 M305,97 L303,103 L305,109 M308,103 L312,103"/><path class="frame-peak-shadow" d="M300,93 L302,97 L304,103 L302,109 L300,113"/><path class="frame-peak" d="M300,154 L304,160 L306,167 L304,174 L300,180 M306,167 L309,167"/><path class="frame-peak-shadow" d="M300,157 L302,161 L303,167 L302,173 L300,177"/><path class="frame-peak" d="M300,218 L305,225 L308,231 L305,237 L300,244 M305,225 L303,231 L305,237 M308,231 L312,231"/><path class="frame-peak-shadow" d="M300,221 L302,225 L304,231 L302,237 L300,241"/><path class="frame-peak" d="M300,282 L304,288 L306,295 L304,302 L300,308 M306,295 L309,295"/><path class="frame-peak-shadow" d="M300,285 L302,289 L303,295 L302,301 L300,305"/><path class="frame-peak" d="M300,346 L305,349 L308,350 L305,351 L300,354 M308,350 L311,350"/><path class="frame-peak-shadow" d="M300,347 L302,349 L304,350 L302,351 L300,353"/><path class="frame-peak" d="M34,0 L40,-5 L49,-8 L58,-5 L64,0 M40,-5 L49,-3 L58,-5 M49,-8 L49,-12"/><path class="frame-peak-shadow" d="M36,0 L41,-4 L49,-6 L57,-4 L62,0"/><path class="frame-peak" d="M120,0 L126,-5 L134,-7 L142,-5 L148,0 M134,-7 L134,-11"/><path class="frame-peak-shadow" d="M122,0 L127,-4 L134,-5 L141,-4 L146,0"/><path class="frame-peak" d="M200,0 L207,-5 L214,-8 L221,-5 L228,0 M207,-5 L214,-3 L221,-5 M214,-8 L214,-12"/><path class="frame-peak-shadow" d="M202,0 L208,-4 L214,-6 L220,-4 L226,0"/><path class="frame-peak" d="M272,0 L276,-4 L281,-6 L286,-4 L290,0 M281,-6 L281,-9"/><path class="frame-peak-shadow" d="M274,0 L277,-3 L281,-4 L285,-3 L288,0"/><path class="frame-peak" d="M34,380 L40,385 L49,388 L58,385 L64,380 M40,385 L49,383 L58,385 M49,388 L49,392"/><path class="frame-peak-shadow" d="M36,380 L41,384 L49,386 L57,384 L62,380"/><path class="frame-peak" d="M120,380 L126,385 L134,387 L142,385 L148,380 M134,387 L134,391"/><path class="frame-peak-shadow" d="M122,380 L127,384 L134,385 L141,384 L146,380"/><path class="frame-peak" d="M200,380 L207,385 L214,388 L221,385 L228,380 M207,385 L214,383 L221,385 M214,388 L214,392"/><path class="frame-peak-shadow" d="M202,380 L208,384 L214,386 L220,384 L226,380"/><path class="frame-peak" d="M272,380 L276,384 L281,386 L286,384 L290,380 M281,386 L281,389"/><path class="frame-peak-shadow" d="M274,380 L277,383 L281,384 L285,383 L288,380"/><path class="frame-peak" d="M0,16 L0,0 L16,0"/><path class="frame-peak" d="M0,8 L5,5 L8,0"/><path class="frame-mark" d="M3,12 L3,3 L12,3"/><path class="frame-glyph" d="M8,0 L11,4 L8,8"/><circle class="frame-dot" cx="5.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M284,0 L300,0 L300,16"/><path class="frame-peak" d="M292,0 L295,5 L300,8"/><path class="frame-mark" d="M288,3 L297,3 L297,12"/><path class="frame-glyph" d="M292,0 L289,4 L292,8"/><circle class="frame-dot" cx="294.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M0,364 L0,380 L16,380"/><path class="frame-peak" d="M0,372 L5,375 L8,380"/><path class="frame-mark" d="M3,368 L3,377 L12,377"/><path class="frame-glyph" d="M8,380 L11,376 L8,372"/><circle class="frame-dot" cx="5.5" cy="374.5" r="1.3"/><path class="frame-peak" d="M284,380 L300,380 L300,364"/><path class="frame-peak" d="M292,380 L295,375 L300,372"/><path class="frame-mark" d="M288,377 L297,377 L297,368"/><path class="frame-glyph" d="M292,380 L289,376 L292,372"/><circle class="frame-dot" cx="294.5" cy="374.5" r="1.3"/><path class="frame-mark" d="M0,184 L-3,190 L0,196"/><line class="frame-mark" x1="-3" y1="190" x2="-7" y2="190"/><path class="frame-mark" d="M300,184 L303,190 L300,196"/><line class="frame-mark" x1="303" y1="190" x2="307" y2="190"/><path class="frame-mark" d="M144,0 L150,-3 L156,0"/><line class="frame-mark" x1="150" y1="-3" x2="150" y2="-7"/><path class="frame-mark" d="M144,380 L150,383 L156,380"/><line class="frame-mark" x1="150" y1="383" x2="150" y2="387"/></svg></div>
+        <div class="card-image-wrap">
+          <img src="images/obra/obra-008.jpg" alt="Conducto" class="card-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-image-placeholder" style="display:none">
+            <div class="card-shimmer"></div>
+            <span class="card-slug">obra-008</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Conducto</h3>
+          <p class="card-meta">Fotografía digital · 2023</p>
+        </div>
+        <div class="card-glow"></div>
+      </a>
+      <a class="gallery-card" href="images/obra/obra-009.jpg" data-index="8" data-lightbox="obra" aria-label="Biomasa">
+        <div class="card-giger-frame" aria-hidden="true"><svg viewBox="0 0 300 380" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="frame-spine" x1="0" y1="0" x2="0" y2="26"/><line class="frame-spine" x1="0" y1="52" x2="0" y2="90"/><line class="frame-spine" x1="0" y1="116" x2="0" y2="154"/><line class="frame-spine" x1="0" y1="180" x2="0" y2="218"/><line class="frame-spine" x1="0" y1="244" x2="0" y2="282"/><line class="frame-spine" x1="0" y1="308" x2="0" y2="346"/><line class="frame-spine" x1="0" y1="354" x2="0" y2="380"/><line class="frame-spine" x1="300" y1="0" x2="300" y2="26"/><line class="frame-spine" x1="300" y1="52" x2="300" y2="90"/><line class="frame-spine" x1="300" y1="116" x2="300" y2="154"/><line class="frame-spine" x1="300" y1="180" x2="300" y2="218"/><line class="frame-spine" x1="300" y1="244" x2="300" y2="282"/><line class="frame-spine" x1="300" y1="308" x2="300" y2="346"/><line class="frame-spine" x1="300" y1="354" x2="300" y2="380"/><line class="frame-spine" x1="0" y1="0" x2="34" y2="0"/><line class="frame-spine" x1="64" y1="0" x2="120" y2="0"/><line class="frame-spine" x1="148" y1="0" x2="200" y2="0"/><line class="frame-spine" x1="228" y1="0" x2="272" y2="0"/><line class="frame-spine" x1="290" y1="0" x2="300" y2="0"/><line class="frame-spine" x1="0" y1="380" x2="34" y2="380"/><line class="frame-spine" x1="64" y1="380" x2="120" y2="380"/><line class="frame-spine" x1="148" y1="380" x2="200" y2="380"/><line class="frame-spine" x1="228" y1="380" x2="272" y2="380"/><line class="frame-spine" x1="290" y1="380" x2="300" y2="380"/><path class="frame-peak" d="M0,26 L-5,32 L-8,39 L-5,46 L0,52 M-5,32 L-3,39 L-5,46 M-8,39 L-12,39"/><path class="frame-peak-shadow" d="M0,29 L-2,32 L-4,39 L-2,46 L0,49"/><path class="frame-peak" d="M0,90 L-5,97 L-8,103 L-5,109 L0,116 M-5,97 L-3,103 L-5,109 M-8,103 L-12,103"/><path class="frame-peak-shadow" d="M0,93 L-2,97 L-4,103 L-2,109 L0,113"/><path class="frame-peak" d="M0,154 L-4,160 L-6,167 L-4,174 L0,180 M-6,167 L-9,167"/><path class="frame-peak-shadow" d="M0,157 L-2,161 L-3,167 L-2,173 L0,177"/><path class="frame-peak" d="M0,218 L-5,225 L-8,231 L-5,237 L0,244 M-5,225 L-3,231 L-5,237 M-8,231 L-12,231"/><path class="frame-peak-shadow" d="M0,221 L-2,225 L-4,231 L-2,237 L0,241"/><path class="frame-peak" d="M0,282 L-4,288 L-6,295 L-4,302 L0,308 M-6,295 L-9,295"/><path class="frame-peak-shadow" d="M0,285 L-2,289 L-3,295 L-2,301 L0,305"/><path class="frame-peak" d="M0,346 L-5,349 L-8,350 L-5,351 L0,354 M-8,350 L-11,350"/><path class="frame-peak-shadow" d="M0,347 L-2,349 L-4,350 L-2,351 L0,353"/><path class="frame-peak" d="M300,26 L305,32 L308,39 L305,46 L300,52 M305,32 L303,39 L305,46 M308,39 L312,39"/><path class="frame-peak-shadow" d="M300,29 L302,32 L304,39 L302,46 L300,49"/><path class="frame-peak" d="M300,90 L305,97 L308,103 L305,109 L300,116 M305,97 L303,103 L305,109 M308,103 L312,103"/><path class="frame-peak-shadow" d="M300,93 L302,97 L304,103 L302,109 L300,113"/><path class="frame-peak" d="M300,154 L304,160 L306,167 L304,174 L300,180 M306,167 L309,167"/><path class="frame-peak-shadow" d="M300,157 L302,161 L303,167 L302,173 L300,177"/><path class="frame-peak" d="M300,218 L305,225 L308,231 L305,237 L300,244 M305,225 L303,231 L305,237 M308,231 L312,231"/><path class="frame-peak-shadow" d="M300,221 L302,225 L304,231 L302,237 L300,241"/><path class="frame-peak" d="M300,282 L304,288 L306,295 L304,302 L300,308 M306,295 L309,295"/><path class="frame-peak-shadow" d="M300,285 L302,289 L303,295 L302,301 L300,305"/><path class="frame-peak" d="M300,346 L305,349 L308,350 L305,351 L300,354 M308,350 L311,350"/><path class="frame-peak-shadow" d="M300,347 L302,349 L304,350 L302,351 L300,353"/><path class="frame-peak" d="M34,0 L40,-5 L49,-8 L58,-5 L64,0 M40,-5 L49,-3 L58,-5 M49,-8 L49,-12"/><path class="frame-peak-shadow" d="M36,0 L41,-4 L49,-6 L57,-4 L62,0"/><path class="frame-peak" d="M120,0 L126,-5 L134,-7 L142,-5 L148,0 M134,-7 L134,-11"/><path class="frame-peak-shadow" d="M122,0 L127,-4 L134,-5 L141,-4 L146,0"/><path class="frame-peak" d="M200,0 L207,-5 L214,-8 L221,-5 L228,0 M207,-5 L214,-3 L221,-5 M214,-8 L214,-12"/><path class="frame-peak-shadow" d="M202,0 L208,-4 L214,-6 L220,-4 L226,0"/><path class="frame-peak" d="M272,0 L276,-4 L281,-6 L286,-4 L290,0 M281,-6 L281,-9"/><path class="frame-peak-shadow" d="M274,0 L277,-3 L281,-4 L285,-3 L288,0"/><path class="frame-peak" d="M34,380 L40,385 L49,388 L58,385 L64,380 M40,385 L49,383 L58,385 M49,388 L49,392"/><path class="frame-peak-shadow" d="M36,380 L41,384 L49,386 L57,384 L62,380"/><path class="frame-peak" d="M120,380 L126,385 L134,387 L142,385 L148,380 M134,387 L134,391"/><path class="frame-peak-shadow" d="M122,380 L127,384 L134,385 L141,384 L146,380"/><path class="frame-peak" d="M200,380 L207,385 L214,388 L221,385 L228,380 M207,385 L214,383 L221,385 M214,388 L214,392"/><path class="frame-peak-shadow" d="M202,380 L208,384 L214,386 L220,384 L226,380"/><path class="frame-peak" d="M272,380 L276,384 L281,386 L286,384 L290,380 M281,386 L281,389"/><path class="frame-peak-shadow" d="M274,380 L277,383 L281,384 L285,383 L288,380"/><path class="frame-peak" d="M0,16 L0,0 L16,0"/><path class="frame-peak" d="M0,8 L5,5 L8,0"/><path class="frame-mark" d="M3,12 L3,3 L12,3"/><path class="frame-glyph" d="M8,0 L11,4 L8,8"/><circle class="frame-dot" cx="5.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M284,0 L300,0 L300,16"/><path class="frame-peak" d="M292,0 L295,5 L300,8"/><path class="frame-mark" d="M288,3 L297,3 L297,12"/><path class="frame-glyph" d="M292,0 L289,4 L292,8"/><circle class="frame-dot" cx="294.5" cy="5.5" r="1.3"/><path class="frame-peak" d="M0,364 L0,380 L16,380"/><path class="frame-peak" d="M0,372 L5,375 L8,380"/><path class="frame-mark" d="M3,368 L3,377 L12,377"/><path class="frame-glyph" d="M8,380 L11,376 L8,372"/><circle class="frame-dot" cx="5.5" cy="374.5" r="1.3"/><path class="frame-peak" d="M284,380 L300,380 L300,364"/><path class="frame-peak" d="M292,380 L295,375 L300,372"/><path class="frame-mark" d="M288,377 L297,377 L297,368"/><path class="frame-glyph" d="M292,380 L289,376 L292,372"/><circle class="frame-dot" cx="294.5" cy="374.5" r="1.3"/><path class="frame-mark" d="M0,184 L-3,190 L0,196"/><line class="frame-mark" x1="-3" y1="190" x2="-7" y2="190"/><path class="frame-mark" d="M300,184 L303,190 L300,196"/><line class="frame-mark" x1="303" y1="190" x2="307" y2="190"/><path class="frame-mark" d="M144,0 L150,-3 L156,0"/><line class="frame-mark" x1="150" y1="-3" x2="150" y2="-7"/><path class="frame-mark" d="M144,380 L150,383 L156,380"/><line class="frame-mark" x1="150" y1="383" x2="150" y2="387"/></svg></div>
+        <div class="card-image-wrap">
+          <img src="images/obra/obra-009.jpg" alt="Biomasa" class="card-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="card-image-placeholder" style="display:none">
+            <div class="card-shimmer"></div>
+            <span class="card-slug">obra-009</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <h3 class="card-title">Biomasa</h3>
+          <p class="card-meta">Serie especial · 2024</p>
+        </div>
+        <div class="card-glow"></div>
+      </a>
+    </div>
+
+        <div class="section-rib-right">
+      <svg viewBox="0 0 80 800" xmlns="http://www.w3.org/2000/svg">
+        <line class="spine-main" x1="20" y1="0" x2="20" y2="800"/>
+        <ellipse class="vertebra" cx="20" cy="80" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="20" cy="180" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="20" cy="280" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="20" cy="380" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="20" cy="480" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="20" cy="580" rx="7" ry="10"/>
+        <ellipse class="vertebra" cx="20" cy="680" rx="7" ry="10"/>
+        <path class="rib-side" d="M20,75 C40,80 70,95 78,115 C84,130 76,138 60,133 C44,128 28,118 20,112"/>
+        <path class="rib-side" d="M20,175 C42,180 75,197 83,220 C89,238 80,246 62,240 C44,234 28,220 20,212"/>
+        <path class="rib-side" d="M20,275 C44,280 80,299 88,325 C94,346 84,354 64,347 C44,340 28,322 20,312"/>
+        <path class="rib-side" d="M20,375 C46,380 85,401 93,430 C98,454 88,462 66,454 C44,446 28,424 20,412"/>
+        <circle class="gland" cx="78" cy="115" r="4"/>
+        <circle class="gland" cx="83" cy="220" r="4"/>
+        <circle class="gland" cx="88" cy="325" r="4"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- SEPARADOR BIO-ORGÁNICO 2 -->
+  <div class="giger-divider" id="div2" style="transform:scaleY(-1);">
+    <canvas id="giger-div-canvas-2" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.5;"></canvas>
+    <svg class="giger-divider-svg" viewBox="0 0 1400 180" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="transform:scaleY(-1);">
+      <path class="divider-rib" d="M0,90 C150,40 300,130 500,80 C700,30 900,110 1100,75 C1250,50 1350,100 1400,90"/>
+      <path class="divider-rib delay1" d="M0,108 C150,58 300,148 500,98 C700,48 900,128 1100,93 C1250,68 1350,118 1400,108"/>
+      <line stroke="rgba(140,128,106,0.4)" stroke-width="1.2" x1="0" y1="90" x2="1400" y2="90"/>
+      <ellipse class="vertebra" cx="250" cy="90" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="500" cy="80" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="700" cy="90" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="900" cy="110" rx="6" ry="9"/>
+      <ellipse class="vertebra" cx="1150" cy="90" rx="6" ry="9"/>
+      <circle class="div-node" cx="300" cy="130" r="6"/>
+      <circle class="div-node" cx="700" cy="75" r="6"/>
+      <circle class="div-node" cx="1100" cy="75" r="6"/>
+    </svg>
+  </div>
+
+  <!-- SECCIÓN SOBRE MÍ -->
+  <section id="sobre" class="section section--sobre">
+    <div class="sobre-wrap">
+      <div class="sobre-skeleton">
+        <svg viewBox="0 0 300 500" xmlns="http://www.w3.org/2000/svg">
+          <line class="spine-main" x1="150" y1="0" x2="150" y2="500"/>
+          <ellipse class="vertebra" cx="150" cy="50" rx="10" ry="15"/>
+          <ellipse class="vertebra" cx="150" cy="110" rx="10" ry="15"/>
+          <ellipse class="vertebra" cx="150" cy="170" rx="10" ry="15"/>
+          <ellipse class="vertebra" cx="150" cy="230" rx="10" ry="15"/>
+          <ellipse class="vertebra" cx="150" cy="290" rx="10" ry="15"/>
+          <ellipse class="vertebra" cx="150" cy="350" rx="10" ry="15"/>
+          <ellipse class="vertebra" cx="150" cy="410" rx="10" ry="15"/>
+          <path class="rib-sym" d="M150,45 C120,50 80,65 55,85 C35,100 38,115 58,110 C78,105 110,92 150,88"/>
+          <path class="rib-sym" d="M150,45 C180,50 220,65 245,85 C265,100 262,115 242,110 C222,105 190,92 150,88"/>
+          <path class="rib-sym" d="M150,105 C115,110 70,127 42,150 C20,168 24,184 46,178 C68,172 108,156 150,150"/>
+          <path class="rib-sym" d="M150,105 C185,110 230,127 258,150 C280,168 276,184 254,178 C232,172 192,156 150,150"/>
+          <path class="rib-sym" d="M150,165 C110,170 60,189 30,215 C5,236 10,252 34,245 C58,238 106,220 150,212"/>
+          <path class="rib-sym" d="M150,165 C190,170 240,189 270,215 C295,236 290,252 266,245 C242,238 194,220 150,212"/>
+          <path class="rib-sym" d="M150,225 C105,230 50,251 18,280 C-10,304 -4,320 22,312 C48,304 104,284 150,274"/>
+          <path class="rib-sym" d="M150,225 C195,230 250,251 282,280 C310,304 304,320 278,312 C252,304 196,284 150,274"/>
+          <path class="pelvis" d="M90,380 C70,390 55,410 60,435 C65,460 85,470 110,465 C135,460 148,450 150,445 C152,450 165,460 190,465 C215,470 235,460 240,435 C245,410 230,390 210,380 C190,370 165,368 150,368 C135,368 110,370 90,380"/>
+          <path class="tissue" d="M150,88 C120,95 85,108 62,125 C42,140 44,155 65,150 C86,145 116,132 150,125"/>
+          <path class="tissue" d="M150,88 C180,95 215,108 238,125 C258,140 256,155 235,150 C214,145 184,132 150,125"/>
+          <circle class="gland" cx="58" cy="110" r="5"/>
+          <circle class="gland" cx="242" cy="110" r="5"/>
+          <circle class="gland" cx="46" cy="178" r="5"/>
+          <circle class="gland" cx="254" cy="178" r="5"/>
+          <circle class="gland" cx="34" cy="245" r="5"/>
+          <circle class="gland" cx="266" cy="245" r="5"/>
+        </svg>
+      </div>
+
+      <div class="sobre-content">
+        <h2 class="section-title" data-text="SOBRE MÍ">SOBRE MÍ</h2>
+        <div class="sobre-bio">
+          <p class="bio-text bio-text--lead">
+            Antares es un fotógrafo contemporáneo cuya obra explora la tensión entre lo orgánico y lo estructural, lo visible y lo latente.
+          </p>
+          <p class="bio-text">
+            Su trabajo nace de la observación de los espacios de transición: el umbral entre la forma reconocible y su disolución, entre la luz que construye y la sombra que oculta. Cada imagen es un fragmento de una anatomía mayor, un sistema vivo capturado en el instante de su respiración.
+          </p>
+          <p class="bio-text">
+            Influenciado por la vertiente bio-orgánica del arte contemporáneo y la tradición del blanco y negro, Antares construye universos donde la textura de la piel, el hueso y el tejido se convierten en el lenguaje principal.
+          </p>
+          <div class="bio-tags">
+            <span class="bio-tag">Fotografía Análoga</span>
+            <span class="bio-tag">Fotografía Digital</span>
+            <span class="bio-tag">Retrato</span>
+            <span class="bio-tag">Arquitectura Orgánica</span>
+            <span class="bio-tag">Blanco y Negro</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEPARADOR 3 -->
+  <div class="organic-divider" id="div3">
+    <svg viewBox="0 0 1400 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path class="divider-rib" d="M0,20 C200,50 400,5 600,35 C800,65 1000,10 1200,40 C1300,55 1360,25 1400,20"/>
+      <path class="divider-rib delay1" d="M0,35 C200,65 400,20 600,50 C800,80 1000,25 1200,55 C1300,70 1360,40 1400,35"/>
+      <circle class="div-node" cx="600" cy="35" r="6"/>
+      <circle class="div-node" cx="200" cy="50" r="5"/>
+      <circle class="div-node" cx="1000" cy="10" r="5"/>
+    </svg>
+  </div>
+
+  <!-- SECCIÓN INSTAGRAM -->
+  <section id="instagram" class="section section--instagram">
+    <div class="section-header">
+      <h2 class="section-title" data-text="INSTAGRAM">INSTAGRAM</h2>
+      <p class="section-subtitle">
+        <a href="https://instagram.com/anth4rez" target="_blank" class="ig-handle">@anth4rez</a>
+      </p>
+    </div>
+
+    <div class="ig-grid-triptych" id="igGrid">
+      <a class="ig-triptych-cell" href="images/instagram/ig-001.jpg" data-delay="0" data-index="0" data-lightbox="instagram" aria-label="Fragmento I">
+        <div class="ig-img-wrap">
+          <img src="images/instagram/ig-001.jpg" alt="Fragmento I" class="ig-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <div class="ig-img-placeholder" style="display:none"></div>
+        </div>
+        <div class="biomech-frame"><svg viewBox="0 0 240 460" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="biomech-spine" x1="0" y1="0" x2="0" y2="25"/><line class="biomech-spine" x1="0" y1="51" x2="0" y2="89"/><line class="biomech-spine" x1="0" y1="115" x2="0" y2="153"/><line class="biomech-spine" x1="0" y1="179" x2="0" y2="217"/><line class="biomech-spine" x1="0" y1="243" x2="0" y2="281"/><line class="biomech-spine" x1="0" y1="307" x2="0" y2="345"/><line class="biomech-spine" x1="0" y1="371" x2="0" y2="409"/><line class="biomech-spine" x1="0" y1="433" x2="0" y2="460"/><line class="biomech-spine" x1="240" y1="0" x2="240" y2="25"/><line class="biomech-spine" x1="240" y1="51" x2="240" y2="89"/><line class="biomech-spine" x1="240" y1="115" x2="240" y2="153"/><line class="biomech-spine" x1="240" y1="179" x2="240" y2="217"/><line class="biomech-spine" x1="240" y1="243" x2="240" y2="281"/><line class="biomech-spine" x1="240" y1="307" x2="240" y2="345"/><line class="biomech-spine" x1="240" y1="371" x2="240" y2="409"/><line class="biomech-spine" x1="240" y1="433" x2="240" y2="460"/><line class="biomech-spine" x1="0" y1="0" x2="28" y2="0"/><line class="biomech-spine" x1="58" y1="0" x2="104" y2="0"/><line class="biomech-spine" x1="132" y1="0" x2="178" y2="0"/><line class="biomech-spine" x1="206" y1="0" x2="240" y2="0"/><line class="biomech-spine" x1="0" y1="460" x2="28" y2="460"/><line class="biomech-spine" x1="58" y1="460" x2="104" y2="460"/><line class="biomech-spine" x1="132" y1="460" x2="178" y2="460"/><line class="biomech-spine" x1="206" y1="460" x2="240" y2="460"/><path class="biomech-peak" d="M0,25 L-4,32 L-7,38 L-4,44 L0,51 M-4,32 L-2,38 L-4,44 M-7,38 L-10,38"/><path class="biomech-peak-shadow" d="M0,28 L-2,32 L-4,38 L-2,44 L0,48"/><path class="biomech-peak" d="M0,89 L-4,96 L-7,102 L-4,108 L0,115 M-7,102 L-10,102"/><path class="biomech-peak-shadow" d="M0,92 L-2,96 L-4,102 L-2,108 L0,112"/><path class="biomech-peak" d="M0,153 L-3,159 L-5,165 L-3,171 L0,179 M-5,165 L-8,165"/><path class="biomech-peak-shadow" d="M0,156 L-2,160 L-3,165 L-2,170 L0,176"/><path class="biomech-peak" d="M0,217 L-4,224 L-7,230 L-4,236 L0,243 M-4,224 L-2,230 L-4,236 M-7,230 L-10,230"/><path class="biomech-peak-shadow" d="M0,220 L-2,224 L-4,230 L-2,236 L0,240"/><path class="biomech-peak" d="M0,281 L-3,287 L-5,293 L-3,299 L0,307 M-5,293 L-8,293"/><path class="biomech-peak-shadow" d="M0,284 L-2,288 L-3,293 L-2,298 L0,304"/><path class="biomech-peak" d="M0,345 L-4,352 L-7,358 L-4,364 L0,371 M-7,358 L-10,358"/><path class="biomech-peak-shadow" d="M0,348 L-2,352 L-4,358 L-2,364 L0,368"/><path class="biomech-peak" d="M0,409 L-3,416 L-5,421 L-3,426 L0,433 M-5,421 L-8,421"/><path class="biomech-peak-shadow" d="M0,412 L-2,416 L-3,421 L-2,426 L0,430"/><path class="biomech-peak" d="M240,25 L244,32 L247,38 L244,44 L240,51 M244,32 L242,38 L244,44 M247,38 L250,38"/><path class="biomech-peak-shadow" d="M240,28 L242,32 L244,38 L242,44 L240,48"/><path class="biomech-peak" d="M240,89 L244,96 L247,102 L244,108 L240,115 M247,102 L250,102"/><path class="biomech-peak-shadow" d="M240,92 L242,96 L244,102 L242,108 L240,112"/><path class="biomech-peak" d="M240,153 L243,159 L245,165 L243,171 L240,179 M245,165 L248,165"/><path class="biomech-peak-shadow" d="M240,156 L242,160 L243,165 L242,170 L240,176"/><path class="biomech-peak" d="M240,217 L244,224 L247,230 L244,236 L240,243 M244,224 L242,230 L244,236 M247,230 L250,230"/><path class="biomech-peak-shadow" d="M240,220 L242,224 L244,230 L242,236 L240,240"/><path class="biomech-peak" d="M240,281 L243,287 L245,293 L243,299 L240,307 M245,293 L248,293"/><path class="biomech-peak-shadow" d="M240,284 L242,288 L243,293 L242,298 L240,304"/><path class="biomech-peak" d="M240,345 L244,352 L247,358 L244,364 L240,371 M247,358 L250,358"/><path class="biomech-peak-shadow" d="M240,348 L242,352 L244,358 L242,364 L240,368"/><path class="biomech-peak" d="M240,409 L243,416 L245,421 L243,426 L240,433 M245,421 L248,421"/><path class="biomech-peak-shadow" d="M240,412 L242,416 L243,421 L242,426 L240,430"/><path class="biomech-peak" d="M28,0 L34,-5 L43,-8 L52,-5 L58,0 M34,-5 L43,-3 L52,-5 M43,-8 L43,-12"/><path class="biomech-peak-shadow" d="M30,0 L35,-4 L43,-6 L51,-4 L56,0"/><path class="biomech-peak" d="M104,0 L110,-5 L118,-7 L126,-5 L132,0 M118,-7 L118,-11"/><path class="biomech-peak-shadow" d="M106,0 L111,-4 L118,-5 L125,-4 L130,0"/><path class="biomech-peak" d="M178,0 L184,-5 L192,-7 L200,-5 L206,0 M192,-7 L192,-11"/><path class="biomech-peak-shadow" d="M180,0 L185,-4 L192,-5 L199,-4 L204,0"/><path class="biomech-peak" d="M28,460 L34,465 L43,468 L52,465 L58,460 M34,465 L43,463 L52,465 M43,468 L43,472"/><path class="biomech-peak-shadow" d="M30,460 L35,464 L43,466 L51,464 L56,460"/><path class="biomech-peak" d="M104,460 L110,465 L118,467 L126,465 L132,460 M118,467 L118,471"/><path class="biomech-peak-shadow" d="M106,460 L111,464 L118,465 L125,464 L130,460"/><path class="biomech-peak" d="M178,460 L184,465 L192,467 L200,465 L206,460 M192,467 L192,471"/><path class="biomech-peak-shadow" d="M180,460 L185,464 L192,465 L199,464 L204,460"/><path class="biomech-peak" d="M0,14 L0,0 L14,0"/><path class="biomech-peak" d="M0,7 L4,4 L7,0"/><path class="biomech-mark" d="M2,10 L2,2 L10,2"/><path class="biomech-glyph" d="M7,0 L10,3 L7,6"/><circle class="biomech-dot" cx="4.5" cy="4.5" r="1.2"/><path class="biomech-peak" d="M226,0 L240,0 L240,14"/><path class="biomech-peak" d="M233,0 L236,4 L240,7"/><path class="biomech-mark" d="M230,2 L238,2 L238,10"/><path class="biomech-glyph" d="M233,0 L230,3 L233,6"/><circle class="biomech-dot" cx="235.5" cy="4.5" r="1.2"/><path class="biomech-peak" d="M0,446 L0,460 L14,460"/><path class="biomech-peak" d="M0,453 L4,456 L7,460"/><path class="biomech-mark" d="M2,450 L2,458 L10,458"/><path class="biomech-glyph" d="M7,460 L10,457 L7,454"/><circle class="biomech-dot" cx="4.5" cy="455.5" r="1.2"/><path class="biomech-peak" d="M226,460 L240,460 L240,446"/><path class="biomech-peak" d="M233,460 L236,456 L240,453"/><path class="biomech-mark" d="M230,458 L238,458 L238,450"/><path class="biomech-glyph" d="M233,460 L230,457 L233,454"/><circle class="biomech-dot" cx="235.5" cy="455.5" r="1.2"/><path class="biomech-mark" d="M0,224 L-3,230 L0,236"/><line class="biomech-mark" x1="-3" y1="230" x2="-7" y2="230"/><path class="biomech-mark" d="M240,224 L243,230 L240,236"/><line class="biomech-mark" x1="243" y1="230" x2="247" y2="230"/><path class="biomech-mark" d="M114,0 L120,-3 L126,0"/><line class="biomech-mark" x1="120" y1="-3" x2="120" y2="-6"/><path class="biomech-mark" d="M114,460 L120,463 L126,460"/><line class="biomech-mark" x1="120" y1="463" x2="120" y2="466"/></svg></div>
+        <div class="ig-caption">Fragmento I</div>
+      </a>
+      <a class="ig-triptych-cell" href="images/instagram/ig-002.jpg" data-delay="1" data-index="1" data-lightbox="instagram" aria-label="Fragmento II">
+        <div class="ig-img-wrap">
+          <img src="images/instagram/ig-002.jpg" alt="Fragmento II" class="ig-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <div class="ig-img-placeholder" style="display:none"></div>
+        </div>
+        <div class="biomech-frame"><svg viewBox="0 0 240 460" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="biomech-spine" x1="0" y1="0" x2="0" y2="25"/><line class="biomech-spine" x1="0" y1="51" x2="0" y2="89"/><line class="biomech-spine" x1="0" y1="115" x2="0" y2="153"/><line class="biomech-spine" x1="0" y1="179" x2="0" y2="217"/><line class="biomech-spine" x1="0" y1="243" x2="0" y2="281"/><line class="biomech-spine" x1="0" y1="307" x2="0" y2="345"/><line class="biomech-spine" x1="0" y1="371" x2="0" y2="409"/><line class="biomech-spine" x1="0" y1="433" x2="0" y2="460"/><line class="biomech-spine" x1="240" y1="0" x2="240" y2="25"/><line class="biomech-spine" x1="240" y1="51" x2="240" y2="89"/><line class="biomech-spine" x1="240" y1="115" x2="240" y2="153"/><line class="biomech-spine" x1="240" y1="179" x2="240" y2="217"/><line class="biomech-spine" x1="240" y1="243" x2="240" y2="281"/><line class="biomech-spine" x1="240" y1="307" x2="240" y2="345"/><line class="biomech-spine" x1="240" y1="371" x2="240" y2="409"/><line class="biomech-spine" x1="240" y1="433" x2="240" y2="460"/><line class="biomech-spine" x1="0" y1="0" x2="28" y2="0"/><line class="biomech-spine" x1="58" y1="0" x2="104" y2="0"/><line class="biomech-spine" x1="132" y1="0" x2="178" y2="0"/><line class="biomech-spine" x1="206" y1="0" x2="240" y2="0"/><line class="biomech-spine" x1="0" y1="460" x2="28" y2="460"/><line class="biomech-spine" x1="58" y1="460" x2="104" y2="460"/><line class="biomech-spine" x1="132" y1="460" x2="178" y2="460"/><line class="biomech-spine" x1="206" y1="460" x2="240" y2="460"/><path class="biomech-peak" d="M0,25 L-4,32 L-7,38 L-4,44 L0,51 M-4,32 L-2,38 L-4,44 M-7,38 L-10,38"/><path class="biomech-peak-shadow" d="M0,28 L-2,32 L-4,38 L-2,44 L0,48"/><path class="biomech-peak" d="M0,89 L-4,96 L-7,102 L-4,108 L0,115 M-7,102 L-10,102"/><path class="biomech-peak-shadow" d="M0,92 L-2,96 L-4,102 L-2,108 L0,112"/><path class="biomech-peak" d="M0,153 L-3,159 L-5,165 L-3,171 L0,179 M-5,165 L-8,165"/><path class="biomech-peak-shadow" d="M0,156 L-2,160 L-3,165 L-2,170 L0,176"/><path class="biomech-peak" d="M0,217 L-4,224 L-7,230 L-4,236 L0,243 M-4,224 L-2,230 L-4,236 M-7,230 L-10,230"/><path class="biomech-peak-shadow" d="M0,220 L-2,224 L-4,230 L-2,236 L0,240"/><path class="biomech-peak" d="M0,281 L-3,287 L-5,293 L-3,299 L0,307 M-5,293 L-8,293"/><path class="biomech-peak-shadow" d="M0,284 L-2,288 L-3,293 L-2,298 L0,304"/><path class="biomech-peak" d="M0,345 L-4,352 L-7,358 L-4,364 L0,371 M-7,358 L-10,358"/><path class="biomech-peak-shadow" d="M0,348 L-2,352 L-4,358 L-2,364 L0,368"/><path class="biomech-peak" d="M0,409 L-3,416 L-5,421 L-3,426 L0,433 M-5,421 L-8,421"/><path class="biomech-peak-shadow" d="M0,412 L-2,416 L-3,421 L-2,426 L0,430"/><path class="biomech-peak" d="M240,25 L244,32 L247,38 L244,44 L240,51 M244,32 L242,38 L244,44 M247,38 L250,38"/><path class="biomech-peak-shadow" d="M240,28 L242,32 L244,38 L242,44 L240,48"/><path class="biomech-peak" d="M240,89 L244,96 L247,102 L244,108 L240,115 M247,102 L250,102"/><path class="biomech-peak-shadow" d="M240,92 L242,96 L244,102 L242,108 L240,112"/><path class="biomech-peak" d="M240,153 L243,159 L245,165 L243,171 L240,179 M245,165 L248,165"/><path class="biomech-peak-shadow" d="M240,156 L242,160 L243,165 L242,170 L240,176"/><path class="biomech-peak" d="M240,217 L244,224 L247,230 L244,236 L240,243 M244,224 L242,230 L244,236 M247,230 L250,230"/><path class="biomech-peak-shadow" d="M240,220 L242,224 L244,230 L242,236 L240,240"/><path class="biomech-peak" d="M240,281 L243,287 L245,293 L243,299 L240,307 M245,293 L248,293"/><path class="biomech-peak-shadow" d="M240,284 L242,288 L243,293 L242,298 L240,304"/><path class="biomech-peak" d="M240,345 L244,352 L247,358 L244,364 L240,371 M247,358 L250,358"/><path class="biomech-peak-shadow" d="M240,348 L242,352 L244,358 L242,364 L240,368"/><path class="biomech-peak" d="M240,409 L243,416 L245,421 L243,426 L240,433 M245,421 L248,421"/><path class="biomech-peak-shadow" d="M240,412 L242,416 L243,421 L242,426 L240,430"/><path class="biomech-peak" d="M28,0 L34,-5 L43,-8 L52,-5 L58,0 M34,-5 L43,-3 L52,-5 M43,-8 L43,-12"/><path class="biomech-peak-shadow" d="M30,0 L35,-4 L43,-6 L51,-4 L56,0"/><path class="biomech-peak" d="M104,0 L110,-5 L118,-7 L126,-5 L132,0 M118,-7 L118,-11"/><path class="biomech-peak-shadow" d="M106,0 L111,-4 L118,-5 L125,-4 L130,0"/><path class="biomech-peak" d="M178,0 L184,-5 L192,-7 L200,-5 L206,0 M192,-7 L192,-11"/><path class="biomech-peak-shadow" d="M180,0 L185,-4 L192,-5 L199,-4 L204,0"/><path class="biomech-peak" d="M28,460 L34,465 L43,468 L52,465 L58,460 M34,465 L43,463 L52,465 M43,468 L43,472"/><path class="biomech-peak-shadow" d="M30,460 L35,464 L43,466 L51,464 L56,460"/><path class="biomech-peak" d="M104,460 L110,465 L118,467 L126,465 L132,460 M118,467 L118,471"/><path class="biomech-peak-shadow" d="M106,460 L111,464 L118,465 L125,464 L130,460"/><path class="biomech-peak" d="M178,460 L184,465 L192,467 L200,465 L206,460 M192,467 L192,471"/><path class="biomech-peak-shadow" d="M180,460 L185,464 L192,465 L199,464 L204,460"/><path class="biomech-peak" d="M0,14 L0,0 L14,0"/><path class="biomech-peak" d="M0,7 L4,4 L7,0"/><path class="biomech-mark" d="M2,10 L2,2 L10,2"/><path class="biomech-glyph" d="M7,0 L10,3 L7,6"/><circle class="biomech-dot" cx="4.5" cy="4.5" r="1.2"/><path class="biomech-peak" d="M226,0 L240,0 L240,14"/><path class="biomech-peak" d="M233,0 L236,4 L240,7"/><path class="biomech-mark" d="M230,2 L238,2 L238,10"/><path class="biomech-glyph" d="M233,0 L230,3 L233,6"/><circle class="biomech-dot" cx="235.5" cy="4.5" r="1.2"/><path class="biomech-peak" d="M0,446 L0,460 L14,460"/><path class="biomech-peak" d="M0,453 L4,456 L7,460"/><path class="biomech-mark" d="M2,450 L2,458 L10,458"/><path class="biomech-glyph" d="M7,460 L10,457 L7,454"/><circle class="biomech-dot" cx="4.5" cy="455.5" r="1.2"/><path class="biomech-peak" d="M226,460 L240,460 L240,446"/><path class="biomech-peak" d="M233,460 L236,456 L240,453"/><path class="biomech-mark" d="M230,458 L238,458 L238,450"/><path class="biomech-glyph" d="M233,460 L230,457 L233,454"/><circle class="biomech-dot" cx="235.5" cy="455.5" r="1.2"/><path class="biomech-mark" d="M0,224 L-3,230 L0,236"/><line class="biomech-mark" x1="-3" y1="230" x2="-7" y2="230"/><path class="biomech-mark" d="M240,224 L243,230 L240,236"/><line class="biomech-mark" x1="243" y1="230" x2="247" y2="230"/><path class="biomech-mark" d="M114,0 L120,-3 L126,0"/><line class="biomech-mark" x1="120" y1="-3" x2="120" y2="-6"/><path class="biomech-mark" d="M114,460 L120,463 L126,460"/><line class="biomech-mark" x1="120" y1="463" x2="120" y2="466"/></svg></div>
+        <div class="ig-caption">Fragmento II</div>
+      </a>
+      <a class="ig-triptych-cell" href="images/instagram/ig-003.jpg" data-delay="2" data-index="2" data-lightbox="instagram" aria-label="Fragmento III">
+        <div class="ig-img-wrap">
+          <img src="images/instagram/ig-003.jpg" alt="Fragmento III" class="ig-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <div class="ig-img-placeholder" style="display:none"></div>
+        </div>
+        <div class="biomech-frame"><svg viewBox="0 0 240 460" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line class="biomech-spine" x1="0" y1="0" x2="0" y2="25"/><line class="biomech-spine" x1="0" y1="51" x2="0" y2="89"/><line class="biomech-spine" x1="0" y1="115" x2="0" y2="153"/><line class="biomech-spine" x1="0" y1="179" x2="0" y2="217"/><line class="biomech-spine" x1="0" y1="243" x2="0" y2="281"/><line class="biomech-spine" x1="0" y1="307" x2="0" y2="345"/><line class="biomech-spine" x1="0" y1="371" x2="0" y2="409"/><line class="biomech-spine" x1="0" y1="433" x2="0" y2="460"/><line class="biomech-spine" x1="240" y1="0" x2="240" y2="25"/><line class="biomech-spine" x1="240" y1="51" x2="240" y2="89"/><line class="biomech-spine" x1="240" y1="115" x2="240" y2="153"/><line class="biomech-spine" x1="240" y1="179" x2="240" y2="217"/><line class="biomech-spine" x1="240" y1="243" x2="240" y2="281"/><line class="biomech-spine" x1="240" y1="307" x2="240" y2="345"/><line class="biomech-spine" x1="240" y1="371" x2="240" y2="409"/><line class="biomech-spine" x1="240" y1="433" x2="240" y2="460"/><line class="biomech-spine" x1="0" y1="0" x2="28" y2="0"/><line class="biomech-spine" x1="58" y1="0" x2="104" y2="0"/><line class="biomech-spine" x1="132" y1="0" x2="178" y2="0"/><line class="biomech-spine" x1="206" y1="0" x2="240" y2="0"/><line class="biomech-spine" x1="0" y1="460" x2="28" y2="460"/><line class="biomech-spine" x1="58" y1="460" x2="104" y2="460"/><line class="biomech-spine" x1="132" y1="460" x2="178" y2="460"/><line class="biomech-spine" x1="206" y1="460" x2="240" y2="460"/><path class="biomech-peak" d="M0,25 L-4,32 L-7,38 L-4,44 L0,51 M-4,32 L-2,38 L-4,44 M-7,38 L-10,38"/><path class="biomech-peak-shadow" d="M0,28 L-2,32 L-4,38 L-2,44 L0,48"/><path class="biomech-peak" d="M0,89 L-4,96 L-7,102 L-4,108 L0,115 M-7,102 L-10,102"/><path class="biomech-peak-shadow" d="M0,92 L-2,96 L-4,102 L-2,108 L0,112"/><path class="biomech-peak" d="M0,153 L-3,159 L-5,165 L-3,171 L0,179 M-5,165 L-8,165"/><path class="biomech-peak-shadow" d="M0,156 L-2,160 L-3,165 L-2,170 L0,176"/><path class="biomech-peak" d="M0,217 L-4,224 L-7,230 L-4,236 L0,243 M-4,224 L-2,230 L-4,236 M-7,230 L-10,230"/><path class="biomech-peak-shadow" d="M0,220 L-2,224 L-4,230 L-2,236 L0,240"/><path class="biomech-peak" d="M0,281 L-3,287 L-5,293 L-3,299 L0,307 M-5,293 L-8,293"/><path class="biomech-peak-shadow" d="M0,284 L-2,288 L-3,293 L-2,298 L0,304"/><path class="biomech-peak" d="M0,345 L-4,352 L-7,358 L-4,364 L0,371 M-7,358 L-10,358"/><path class="biomech-peak-shadow" d="M0,348 L-2,352 L-4,358 L-2,364 L0,368"/><path class="biomech-peak" d="M0,409 L-3,416 L-5,421 L-3,426 L0,433 M-5,421 L-8,421"/><path class="biomech-peak-shadow" d="M0,412 L-2,416 L-3,421 L-2,426 L0,430"/><path class="biomech-peak" d="M240,25 L244,32 L247,38 L244,44 L240,51 M244,32 L242,38 L244,44 M247,38 L250,38"/><path class="biomech-peak-shadow" d="M240,28 L242,32 L244,38 L242,44 L240,48"/><path class="biomech-peak" d="M240,89 L244,96 L247,102 L244,108 L240,115 M247,102 L250,102"/><path class="biomech-peak-shadow" d="M240,92 L242,96 L244,102 L242,108 L240,112"/><path class="biomech-peak" d="M240,153 L243,159 L245,165 L243,171 L240,179 M245,165 L248,165"/><path class="biomech-peak-shadow" d="M240,156 L242,160 L243,165 L242,170 L240,176"/><path class="biomech-peak" d="M240,217 L244,224 L247,230 L244,236 L240,243 M244,224 L242,230 L244,236 M247,230 L250,230"/><path class="biomech-peak-shadow" d="M240,220 L242,224 L244,230 L242,236 L240,240"/><path class="biomech-peak" d="M240,281 L243,287 L245,293 L243,299 L240,307 M245,293 L248,293"/><path class="biomech-peak-shadow" d="M240,284 L242,288 L243,293 L242,298 L240,304"/><path class="biomech-peak" d="M240,345 L244,352 L247,358 L244,364 L240,371 M247,358 L250,358"/><path class="biomech-peak-shadow" d="M240,348 L242,352 L244,358 L242,364 L240,368"/><path class="biomech-peak" d="M240,409 L243,416 L245,421 L243,426 L240,433 M245,421 L248,421"/><path class="biomech-peak-shadow" d="M240,412 L242,416 L243,421 L242,426 L240,430"/><path class="biomech-peak" d="M28,0 L34,-5 L43,-8 L52,-5 L58,0 M34,-5 L43,-3 L52,-5 M43,-8 L43,-12"/><path class="biomech-peak-shadow" d="M30,0 L35,-4 L43,-6 L51,-4 L56,0"/><path class="biomech-peak" d="M104,0 L110,-5 L118,-7 L126,-5 L132,0 M118,-7 L118,-11"/><path class="biomech-peak-shadow" d="M106,0 L111,-4 L118,-5 L125,-4 L130,0"/><path class="biomech-peak" d="M178,0 L184,-5 L192,-7 L200,-5 L206,0 M192,-7 L192,-11"/><path class="biomech-peak-shadow" d="M180,0 L185,-4 L192,-5 L199,-4 L204,0"/><path class="biomech-peak" d="M28,460 L34,465 L43,468 L52,465 L58,460 M34,465 L43,463 L52,465 M43,468 L43,472"/><path class="biomech-peak-shadow" d="M30,460 L35,464 L43,466 L51,464 L56,460"/><path class="biomech-peak" d="M104,460 L110,465 L118,467 L126,465 L132,460 M118,467 L118,471"/><path class="biomech-peak-shadow" d="M106,460 L111,464 L118,465 L125,464 L130,460"/><path class="biomech-peak" d="M178,460 L184,465 L192,467 L200,465 L206,460 M192,467 L192,471"/><path class="biomech-peak-shadow" d="M180,460 L185,464 L192,465 L199,464 L204,460"/><path class="biomech-peak" d="M0,14 L0,0 L14,0"/><path class="biomech-peak" d="M0,7 L4,4 L7,0"/><path class="biomech-mark" d="M2,10 L2,2 L10,2"/><path class="biomech-glyph" d="M7,0 L10,3 L7,6"/><circle class="biomech-dot" cx="4.5" cy="4.5" r="1.2"/><path class="biomech-peak" d="M226,0 L240,0 L240,14"/><path class="biomech-peak" d="M233,0 L236,4 L240,7"/><path class="biomech-mark" d="M230,2 L238,2 L238,10"/><path class="biomech-glyph" d="M233,0 L230,3 L233,6"/><circle class="biomech-dot" cx="235.5" cy="4.5" r="1.2"/><path class="biomech-peak" d="M0,446 L0,460 L14,460"/><path class="biomech-peak" d="M0,453 L4,456 L7,460"/><path class="biomech-mark" d="M2,450 L2,458 L10,458"/><path class="biomech-glyph" d="M7,460 L10,457 L7,454"/><circle class="biomech-dot" cx="4.5" cy="455.5" r="1.2"/><path class="biomech-peak" d="M226,460 L240,460 L240,446"/><path class="biomech-peak" d="M233,460 L236,456 L240,453"/><path class="biomech-mark" d="M230,458 L238,458 L238,450"/><path class="biomech-glyph" d="M233,460 L230,457 L233,454"/><circle class="biomech-dot" cx="235.5" cy="455.5" r="1.2"/><path class="biomech-mark" d="M0,224 L-3,230 L0,236"/><line class="biomech-mark" x1="-3" y1="230" x2="-7" y2="230"/><path class="biomech-mark" d="M240,224 L243,230 L240,236"/><line class="biomech-mark" x1="243" y1="230" x2="247" y2="230"/><path class="biomech-mark" d="M114,0 L120,-3 L126,0"/><line class="biomech-mark" x1="120" y1="-3" x2="120" y2="-6"/><path class="biomech-mark" d="M114,460 L120,463 L126,460"/><line class="biomech-mark" x1="120" y1="463" x2="120" y2="466"/></svg></div>
+        <div class="ig-caption">Fragmento III</div>
+      </a>
+    </div>
+
+        <div class="ig-cta-wrap">
+      <a href="https://instagram.com/anth4rez" target="_blank" class="btn-organic btn-organic--ig">
+        <span class="btn-organic__text">SEGUIR EN INSTAGRAM</span>
+        <span class="btn-organic__glow"></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- SECCIÓN CONTACTO -->
+  <section id="contacto" class="section section--contacto">
+    <div class="contacto-skeleton">
+      <svg viewBox="0 0 1200 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <path class="rib-arch" d="M0,150 C100,80 200,50 400,60 C500,65 560,85 600,150 C640,85 700,65 800,60 C1000,50 1100,80 1200,150"/>
+        <path class="rib-arch delay1" d="M0,170 C100,100 200,70 400,80 C500,85 560,105 600,170 C640,105 700,85 800,80 C1000,70 1100,100 1200,170"/>
+        <path class="rib-arch delay2" d="M0,190 C100,120 200,90 400,100 C500,105 560,125 600,190 C640,125 700,105 800,100 C1000,90 1100,120 1200,190"/>
+        <line class="sternum" x1="600" y1="30" x2="600" y2="270"/>
+        <ellipse class="rib-joint" cx="600" cy="65" rx="8" ry="6"/>
+        <ellipse class="rib-joint" cx="600" cy="85" rx="8" ry="6"/>
+        <ellipse class="rib-joint" cx="600" cy="105" rx="8" ry="6"/>
+        <ellipse class="rib-joint" cx="600" cy="125" rx="8" ry="6"/>
+        <path class="tube-contact" d="M200,50 C200,30 210,15 220,5"/>
+        <path class="tube-contact" d="M1000,50 C1000,30 990,15 980,5"/>
+        <circle class="gland" cx="200" cy="50" r="6"/>
+        <circle class="gland" cx="1000" cy="50" r="6"/>
+        <circle class="gland" cx="400" cy="60" r="5"/>
+        <circle class="gland" cx="800" cy="60" r="5"/>
+      </svg>
+    </div>
+
+    <div class="contacto-content">
+      <h2 class="section-title" data-text="CONTACTO">CONTACTO</h2>
+      <p class="contacto-text">Para proyectos, colaboraciones o adquisición de obra</p>
+
+      <div class="contact-form">
+        <div class="form-group">
+          <label class="form-label">NOMBRE</label>
+          <div class="form-input-wrap">
+            <input type="text" class="form-input" placeholder="Tu nombre"/>
+            <div class="form-rib"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">CORREO</label>
+          <div class="form-input-wrap">
+            <input type="email" class="form-input" placeholder="tu@correo.com"/>
+            <div class="form-rib"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">MENSAJE</label>
+          <div class="form-input-wrap">
+            <textarea class="form-input form-textarea" placeholder="Tu mensaje..."></textarea>
+            <div class="form-rib"></div>
+          </div>
+        </div>
+        <button class="btn-organic btn-organic--submit" type="button">
+          <span class="btn-organic__text">ENVIAR</span>
+          <span class="btn-organic__glow"></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-ribs">
+      <svg viewBox="0 0 1400 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <path class="footer-rib" d="M0,30 C200,5 400,50 700,25 C1000,0 1200,45 1400,30"/>
+        <path class="footer-rib delay1" d="M0,45 C200,20 400,55 700,40 C1000,25 1200,58 1400,45"/>
+        <circle class="div-node" cx="350" cy="27" r="4"/>
+        <circle class="div-node" cx="700" cy="25" r="4"/>
+        <circle class="div-node" cx="1050" cy="22" r="4"/>
+      </svg>
+    </div>
+    <div class="footer-content">
+      <p class="footer-brand">ANTARES</p>
+      <p class="footer-copy">© 2026 · Todos los derechos reservados · <a href="https://instagram.com/anth4rez" target="_blank">@anth4rez</a></p>
+    </div>
+  </footer>
+
+  <script src="antares-main.js"></script>
+  <script src="antares-security.js"></script>
+</body>
+</html>
